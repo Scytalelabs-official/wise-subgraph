@@ -1,26 +1,24 @@
-require("dotenv").config();
-const {
-  GraphQLString
-} = require("graphql");
-
+const { GraphQLString } = require("graphql");
+const shared = require("./shared");
 
 const Response = require("../models/response");
 const { responseType } = require("./types/response");
 
-function splitdata(data) {
-  var temp = data.split("(");
-  var result = temp[1].split(")");
-  return result[0];
-}
-
-const handleNewResponse = {
+const handleRefundIssued = {
   type: responseType,
-  description: "Handle New Response",
+  description: "Handle Refund Issued",
   args: {
-    id: { type: GraphQLString },
+    refundedTo: { type: GraphQLString },
+    amount: { type: GraphQLString },
+    deployHash: { type: GraphQLString },
   },
   async resolve(parent, args, context) {
     try {
+      let userID = args.refundedTo;
+      let user = await shared.createUser(userID);
+      user.gasRefunded = args.amount;
+      user.refundTransaction = args.deployHash;
+      await user.save();
       let response = await Response.findOne({ id: args.id });
       if (response === null) {
         // create new response
@@ -31,7 +29,6 @@ const handleNewResponse = {
         await response.save();
       }
       return response;
-    
     } catch (error) {
       throw new Error(error);
     }
@@ -39,5 +36,5 @@ const handleNewResponse = {
 };
 
 module.exports = {
-  handleNewResponse
+  handleRefundIssued,
 };

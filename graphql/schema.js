@@ -2,16 +2,10 @@
 const { GraphQLSchema, GraphQLObjectType } = require("graphql");
 
 // Import queries
-const {
-  responses,
-  response,
-  
-} = require("./queries");
+const { responses, response, user, global } = require("./queries");
 
 // Import mutations
-const {
-  handleNewResponse
-} = require("./mutations");
+const { handleNewResponse } = require("./mutations");
 
 // Define QueryType
 const QueryType = new GraphQLObjectType({
@@ -19,7 +13,9 @@ const QueryType = new GraphQLObjectType({
   description: "Queries",
   fields: {
     responses,
-    response
+    response,
+    user,
+    global,
   },
 });
 
@@ -28,8 +24,7 @@ const MutationType = new GraphQLObjectType({
   name: "MutationType",
   description: "Mutations",
   fields: {
-    handleNewResponse
- 
+    handleNewResponse,
   },
 });
 
