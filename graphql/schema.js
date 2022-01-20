@@ -6,6 +6,15 @@ const { responses, response, user, global } = require("./queries");
 
 // Import mutations
 const { handleNewResponse } = require("./mutations");
+const { handleRefundIssued } = require("./refundSponsor");
+const {
+  handleGiveStatus,
+  handleStakeStart,
+  handleStakeEnd,
+  handleInterestScraped,
+  handleNewGlobals,
+  handleNewSharePrice,
+} = require("./wiseToken");
 
 // Define QueryType
 const QueryType = new GraphQLObjectType({
@@ -25,6 +34,13 @@ const MutationType = new GraphQLObjectType({
   description: "Mutations",
   fields: {
     handleNewResponse,
+    handleRefundIssued,
+    handleGiveStatus,
+    handleStakeStart,
+    handleStakeEnd,
+    handleInterestScraped,
+    handleNewGlobals,
+    handleNewSharePrice,
   },
 });
 

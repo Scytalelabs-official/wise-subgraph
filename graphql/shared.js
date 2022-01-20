@@ -1,15 +1,15 @@
 const User = require("../models/user");
 const Global = require("../models/global");
 
-export const ZERO = "0";
-export const ONE = "1";
-export const WCSPR_PER_CSPR = "1000000000";
+const ZERO = "0";
+const ONE = "1";
+const WCSPR_PER_CSPR = "1000000000";
 
-export function csprVal(cspr) {
+function csprVal(cspr) {
   return BigInt(cspr) * BigInt(WCSPR_PER_CSPR);
 }
 
-export async function getOrCreateGlobal() {
+async function getOrCreateGlobal() {
   let global = await Global.findOne({ id: "0" });
   if (global == null) {
     let newData = new Global({
@@ -41,7 +41,7 @@ export async function getOrCreateGlobal() {
   return global;
 }
 
-export async function createUser(id) {
+async function createUser(id) {
   let newData = new User({
     id: id,
     reservationEffectiveWei: ZERO,
@@ -58,3 +58,11 @@ export async function createUser(id) {
   let user = await User.create(newData);
   return user;
 }
+module.exports = {
+  ZERO,
+  ONE,
+  WCSPR_PER_CSPR,
+  csprVal,
+  getOrCreateGlobal,
+  createUser,
+};

@@ -1,5 +1,5 @@
 const { GraphQLString } = require("graphql");
-const shared = require("./shared");
+const { createUser } = require("./shared");
 
 const Response = require("../models/response");
 const { responseType } = require("./types/response");
@@ -15,15 +15,15 @@ const handleRefundIssued = {
   async resolve(parent, args, context) {
     try {
       let userID = args.refundedTo;
-      let user = await shared.createUser(userID);
+      let user = await createUser(userID);
       user.gasRefunded = args.amount;
       user.refundTransaction = args.deployHash;
       await user.save();
-      let response = await Response.findOne({ id: args.id });
+      let response = await Response.findOne({ id: "1" });
       if (response === null) {
         // create new response
         response = new Response({
-          id: args.id,
+          id: "1",
           result: true,
         });
         await response.save();
