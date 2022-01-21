@@ -8,29 +8,6 @@ const User = require("../models/user");
 const Response = require("../models/response");
 const { responseType } = require("./types/response");
 
-const handleRefundIssued = {
-  type: responseType,
-  description: "Handle Refund Issued",
-  args: {
-    refundedTo: { type: GraphQLString },
-  },
-  async resolve(parent, args, context) {
-    try {
-      let response = await Response.findOne({ id: "1" });
-      if (response === null) {
-        // create new response
-        response = new Response({
-          id: "1",
-          result: true,
-        });
-        await response.save();
-      }
-      return response;
-    } catch (error) {
-      throw new Error(error);
-    }
-  },
-};
 const handleGiveStatus = {
   type: responseType,
   description: "Handle Give Status",

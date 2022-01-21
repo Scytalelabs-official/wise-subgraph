@@ -16,6 +16,13 @@ const {
   handleNewSharePrice,
 } = require("./wiseToken");
 
+const {
+  handleReferralAdded,
+  handleWiseReservation,
+  handleGeneratedStaticSupply,
+  handleGeneratedRandomSupply,
+} = require("./liquidityTransformer");
+
 // Define QueryType
 const QueryType = new GraphQLObjectType({
   name: "QueryType",
@@ -41,6 +48,10 @@ const MutationType = new GraphQLObjectType({
     handleInterestScraped,
     handleNewGlobals,
     handleNewSharePrice,
+    handleReferralAdded,
+    handleWiseReservation,
+    handleGeneratedStaticSupply,
+    handleGeneratedRandomSupply,
   },
 });
 
