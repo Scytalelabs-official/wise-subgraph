@@ -30,36 +30,36 @@ let MIN_SUPPLY_5 = csprVal(2500000);
 let MIN_SUPPLY_6 = csprVal(1);
 
 function getMinSupply(day) {
-  let dayVal = day / 1000000000;
+  let dayVal = day / BigInt(1000000000);
   switch (dayVal) {
-    case 8:
-    case 10:
+    case BigInt(8):
+    case BigInt(10):
       return MIN_SUPPLY_1;
-    case 14:
-    case 16:
-    case 17:
+    case BigInt(14):
+    case BigInt(16):
+    case BigInt(17):
       return MIN_SUPPLY_2;
-    case 21:
-    case 23:
-    case 25:
+    case BigInt(21):
+    case BigInt(23):
+    case BigInt(25):
       return MIN_SUPPLY_3;
-    case 29:
-    case 31:
+    case BigInt(29):
+    case BigInt(31):
       return MIN_SUPPLY_4;
-    case 35:
-    case 36:
-    case 38:
+    case BigInt(35):
+    case BigInt(36):
+    case BigInt(38):
       return MIN_SUPPLY_5;
-    case 12:
-    case 19:
-    case 26:
-    case 33:
-    case 40:
-    case 42:
-    case 44:
-    case 46:
-    case 47:
-    case 48:
+    case BigInt(12):
+    case BigInt(19):
+    case BigInt(26):
+    case BigInt(33):
+    case BigInt(40):
+    case BigInt(42):
+    case BigInt(44):
+    case BigInt(46):
+    case BigInt(47):
+    case BigInt(48):
       return MIN_SUPPLY_6;
     default:
       return NORMAL_SUPPLY;
@@ -90,115 +90,152 @@ const handleReferralAdded = {
   type: responseType,
   description: "Handle Referral Added",
   args: {
-    refundedTo: { type: GraphQLString },
+    deployHash: { type: GraphQLString },
+    blockHash: { type: GraphQLString },
+    timestamp: { type: GraphQLString },
+    from: { type: GraphQLString },
+    referral: { type: GraphQLString },
+    referee: { type: GraphQLString },
+    amount: { type: GraphQLString },
   },
   async resolve(parent, args, context) {
     try {
-      let global = getOrCreateGlobal();
+      let global = await getOrCreateGlobal();
 
-      let transaction = upsertTransaction(event.transaction, event.block);
+      let transaction = await upsertTransaction(
+        args.deployHash,
+        args.blockHash,
+        args.timestamp.args.from
+      );
 
-      let referrerID = event.params.referral.toHexString();
-      let referrer = User.load(referrerID);
+      let referrerID = args.referral;
+      let referrer = await User.findOne({ id: referrerID });
       if (referrer == null) {
-        referrer = createUser(referrerID);
-        global.userCount = global.userCount.plus(ONE);
+        referrer = await createUser(referrerID);
+        global.userCount = (BigInt(global.userCount) + BigInt(ONE)).toString();
       }
       // TODO refactor more == and maybe other operators
-      if (referrer.reservationReferralCount.equals(ZERO)) {
-        global.reservationReferrerCount =
-          global.reservationReferrerCount.plus(ONE);
+      if (referrer.reservationReferralCount == ZERO) {
+        global.reservationReferrerCount = (
+          BigInt(global.reservationReferrerCount) + BigInt(ONE)
+        ).toString();
       }
 
-      let refereeID = event.params.referee.toHexString();
-      let referee = User.load(refereeID);
+      let refereeID = args.referee;
+      let referee = await User.findOne({ id: refereeID });
       if (referee == null) {
-        referee = createUser(refereeID);
-        global.userCount = global.userCount.plus(ONE);
+        referee = await createUser(refereeID);
+        global.userCount = (BigInt(global.userCount) + BigInt(ONE)).toString();
       }
-      let reservedEffectiveEth = event.params.amount
-        .times(BigInt.fromI32(11))
-        .div(BigInt.fromI32(10));
-      referee.reservationActualWei = referee.reservationActualWei
-        .plus(event.params.amount)
-        .minus(reservedEffectiveEth);
-      global.reservationActualWei = global.reservationActualWei
-        .plus(event.params.amount)
-        .minus(reservedEffectiveEth);
+
+      let reservedEffectiveEth =
+        (BigInt(args.amount) * BigInt(11)) / BigInt(10);
+      referee.reservationActualWei = (
+        BigInt(referee.reservationActualWei) +
+        BigInt(args.amount) -
+        reservedEffectiveEth
+      ).toString();
+      global.reservationActualWei = (
+        BigInt(global.reservationActualWei) +
+        BigInt(args.amount) -
+        reservedEffectiveEth
+      ).toString();
       referee.save();
 
-      let referralID = event.transaction.hash.toHexString();
-      let referral = new ReservationReferral(referralID);
-      referral.transaction = transaction.id;
-      referral.timestamp = transaction.timestamp;
-      referral.referrer = referrer.id;
-      referral.referee = referee.id;
-      referral.actualWei = event.params.amount;
-      referral.save();
+      let referralID = args.deployHash;
+      let referral = new ReservationReferral({
+        id: referralID,
+        transaction: transaction.id,
+        timestamp: transaction.timestamp,
+        referrer: referrer.id,
+        referee: referee.id,
+        actualWei: args.amount,
+      });
+      await ReservationReferral.create(referral);
 
-      let wasBelowCm =
-        referrer.reservationReferralActualWei < CM_REFERRER_THRESHOLD;
-      referrer.reservationReferralActualWei =
-        referrer.reservationReferralActualWei.plus(referral.actualWei);
-      referrer.reservationReferralCount =
-        referrer.reservationReferralCount.plus(ONE);
+      let wasBelowCm = false;
+      if (
+        BigInt(referrer.reservationReferralActualWei) < CM_REFERRER_THRESHOLD
+      ) {
+        wasBelowCm = true;
+      } else {
+        wasBelowCm = false;
+      }
+
+      referrer.reservationReferralActualWei = (
+        BigInt(referrer.reservationReferralActualWei) +
+        BigInt(referral.actualWei)
+      ).toString();
+      referrer.reservationReferralCount = (
+        BigInt(referrer.reservationReferralCount) + BigInt(ONE)
+      ).toString();
       if (
         wasBelowCm &&
-        referrer.reservationReferralActualWei >= CM_REFERRER_THRESHOLD &&
+        BigInt(referrer.reservationReferralActualWei) >=
+          CM_REFERRER_THRESHOLD &&
         referrer.cmStatus === false
       ) {
         referrer.cmStatus = true;
         referrer.cmStatusInLaunch = true;
-        global.cmStatusCount = global.cmStatusCount.plus(ONE);
-        global.cmStatusInLaunchCount = global.cmStatusInLaunchCount.plus(ONE);
+        global.cmStatusCount = (
+          BigInt(global.cmStatusCount) + BigInt(ONE)
+        ).toString();
+        global.cmStatusInLaunchCount = (
+          BigInt(global.cmStatusInLaunchCount) + BigInt(ONE)
+        ).toString();
       }
-      referrer.save();
-      global.save();
+      await referrer.save();
+      await global.save();
 
       transaction.referral = referral.id;
-      transaction.save();
+      await transaction.save();
 
-      //let resList = new Array<Reservation | null>();
-      let resList;
-      let txHash = event.transaction.hash.toHexString();
+      let resList = [];
+      let txHash = args.deployHash;
       for (let i = 1; i <= 50; i++) {
         let resID = txHash + "-" + i.toString();
-        let reservation = Reservation.load(resID);
+        let reservation = await Reservation.findOne({ id: resID });
         if (reservation != null) {
           resList.push(reservation);
           // TODO populate reservation.referral and save?  Too costly?
         }
       }
 
-      let nRes = BigInt.fromI32(resList.length);
-      let dayActualWei = referral.actualWei.div(nRes);
-      let remainder = referral.actualWei.mod(nRes);
+      let nRes = BigInt(resList.length);
+      let dayActualWei = BigInt(referral.actualWei) / nRes;
+      let remainder = BigInt(referral.actualWei) % nRes;
       for (let i = 0; i < resList.length; i++) {
-        let actualWei = i === 0 ? dayActualWei.plus(remainder) : dayActualWei;
+        let actualWei = i === 0 ? dayActualWei + remainder : dayActualWei;
 
         let res = resList[i];
-        res.actualWei = actualWei;
-        res.save();
+        res.actualWei = actualWei.toString();
+        await res.save();
 
-        let uResDay = UserReservationDay.load(
-          res.user + "-" + res.investmentDay.toString()
-        );
-        uResDay.actualWei = uResDay.actualWei
-          .plus(res.actualWei)
-          .minus(res.effectiveWei);
-        uResDay.save();
+        let uResDay = await UserReservationDay.findOne({
+          id: res.user + "-" + res.investmentDay,
+        });
+        uResDay.actualWei = (
+          BigInt(uResDay.actualWei) +
+          BigInt(res.actualWei) -
+          BigInt(res.effectiveWei)
+        ).toString();
+        await uResDay.save();
 
-        let gResDay = GlobalReservationDay.load(res.investmentDay.toString());
-        gResDay.actualWei = gResDay.actualWei
-          .plus(res.actualWei)
-          .minus(res.effectiveWei);
-        gResDay.save();
+        let gResDay = await GlobalReservationDay.findOne({
+          id: res.investmentDay,
+        });
+        gResDay.actualWei = (
+          BigInt(gResDay.actualWei) +
+          BigInt(res.actualWei) -
+          BigInt(res.effectiveWei)
+        ).toString();
+        await gResDay.save();
 
-        let gResDaySnapshot = new GlobalReservationDaySnapshot(
-          res.investmentDay.toString() + "-" + event.block.timestamp.toString()
-        );
-        gResDaySnapshot.actualWei = gResDay.actualWei;
-        gResDaySnapshot.save();
+        let gResDaySnapshot = new GlobalReservationDaySnapshot({
+          id: res.investmentDay + "-" + args.timestamp,
+          actualWei: gResDay.actualWei,
+        });
+        await GlobalReservationDaySnapshot.create(gResDaySnapshot);
       }
       let response = await Response.findOne({ id: "1" });
       if (response === null) {
@@ -219,108 +256,137 @@ const handleWiseReservation = {
   type: responseType,
   description: "Handle Wise Reservation",
   args: {
-    refundedTo: { type: GraphQLString },
+    deployHash: { type: GraphQLString },
+    blockHash: { type: GraphQLString },
+    timestamp: { type: GraphQLString },
+    from: { type: GraphQLString },
+    investmentDay: { type: GraphQLString },
+    amount: { type: GraphQLString },
   },
   async resolve(parent, args, context) {
     try {
-      let global = getOrCreateGlobal();
-      global.reservationCount = global.reservationCount.plus(ONE);
+      let global = await getOrCreateGlobal();
+      global.reservationCount = (
+        BigInt(global.reservationCount) + BigInt(ONE)
+      ).toString();
 
-      let transaction = upsertTransaction(event.transaction, event.block);
+      let transaction = await upsertTransaction(
+        args.deployHash,
+        args.blockHash,
+        args.timestamp.args.from
+      );
 
-      let userID = event.transaction.from.toHexString();
-      let user = User.load(userID);
+      let userID = args.from;
+      let user = await User.findOne({ id: userID });
       if (user == null) {
-        user = createUser(userID);
-        global.userCount = global.userCount.plus(ONE);
+        user = await createUser(userID);
+        global.userCount = (BigInt(global.userCount) + BigInt(ONE)).toString();
       }
       if (user.reservationCount == ZERO) {
-        global.reserverCount = global.reserverCount.plus(ONE);
+        global.reserverCount = (
+          BigInt(global.reserverCount) + BigInt(ONE)
+        ).toString();
       }
 
-      let reservationID =
-        event.transaction.hash.toHexString() +
-        "-" +
-        event.params.investmentDay.toString();
-      let reservation = new Reservation(reservationID);
-      reservation.transaction = transaction.id;
-      reservation.timestamp = transaction.timestamp;
-      reservation.user = user.id;
-      reservation.investmentDay = event.params.investmentDay;
-      reservation.effectiveWei = event.params.amount;
-      reservation.actualWei = event.params.amount;
-      reservation.referral = null;
-      reservation.save();
+      let reservationID = args.deployHash + "-" + args.investmentDay;
+      let reservation = new Reservation({
+        id: reservationID,
+        transaction: transaction.id,
+        timestamp: transaction.timestamp,
+        user: user.id,
+        investmentDay: args.investmentDay,
+        effectiveWei: args.amount,
+        actualWei: args.amount,
+        referral: null,
+      });
+      await Reservation.create(reservation);
 
-      user.reservationCount = user.reservationCount.plus(ONE);
-      user.reservationEffectiveWei = user.reservationEffectiveWei.plus(
-        reservation.effectiveWei
-      );
-      user.reservationActualWei = user.reservationActualWei.plus(
-        reservation.effectiveWei
-      );
-      global.reservationEffectiveWei = global.reservationEffectiveWei.plus(
-        reservation.effectiveWei
-      );
-      global.reservationActualWei = global.reservationActualWei.plus(
-        reservation.effectiveWei
-      );
-      global.save();
+      user.reservationCount = (
+        BigInt(user.reservationCount) + BigInt(ONE)
+      ).toString();
+      user.reservationEffectiveWei = (
+        BigInt(user.reservationEffectiveWei) + BigInt(reservation.effectiveWei)
+      ).toString();
+      user.reservationActualWei = (
+        BigInt(user.reservationActualWei) + BigInt(reservation.effectiveWei)
+      ).toString();
+      global.reservationEffectiveWei = (
+        BigInt(global.reservationEffectiveWei) +
+        BigInt(reservation.effectiveWei)
+      ).toString();
+      global.reservationActualWei = (
+        BigInt(global.reservationActualWei) + BigInt(reservation.effectiveWei)
+      ).toString();
+      await global.save();
 
-      let gResDayID = reservation.investmentDay.toString();
-      let gResDay = GlobalReservationDay.load(gResDayID);
+      let gResDayID = reservation.investmentDay;
+      let gResDay = await GlobalReservationDay.findOne({ id: gResDayID });
       if (gResDay == null) {
-        gResDay = new GlobalReservationDay(gResDayID);
-        gResDay.investmentDay = reservation.investmentDay;
-        gResDay.minSupply = getMinSupply(gResDay.investmentDay);
-        gResDay.maxSupply = MAX_SUPPLY.minus(gResDay.minSupply);
-        gResDay.effectiveWei = ZERO;
-        gResDay.actualWei = ZERO;
-        gResDay.reservationCount = ZERO;
-        gResDay.userCount = ZERO;
+        gResDay = new GlobalReservationDay({
+          id: gResDayID,
+          investmentDay: reservation.investmentDay,
+          minSupply: getMinSupply(BigInt(gResDay.investmentDay)).toString(),
+          maxSupply: (MAX_SUPPLY - BigInt(gResDay.minSupply)).toString(),
+          effectiveWei: ZERO,
+          actualWei: ZERO,
+          reservationCount: ZERO,
+          userCount: ZERO,
+        });
+        await GlobalReservationDay.create(gResDay);
       }
-      gResDay.effectiveWei = gResDay.effectiveWei.plus(
-        reservation.effectiveWei
-      );
-      gResDay.actualWei = gResDay.actualWei.plus(reservation.effectiveWei);
-      gResDay.reservationCount = gResDay.reservationCount.plus(ONE);
+      gResDay.effectiveWei = (
+        BigInt(gResDay.effectiveWei) + BigInt(reservation.effectiveWei)
+      ).toString();
+      gResDay.actualWei = (
+        BigInt(gResDay.actualWei) + BigInt(reservation.effectiveWei)
+      ).toString();
+      gResDay.reservationCount = (
+        BigInt(gResDay.reservationCount) + BigInt(ONE)
+      ).toString();
 
-      let gResDaySnapshotID =
-        reservation.investmentDay.toString() +
-        "-" +
-        event.block.timestamp.toString();
-      let gResDaySnapshot = new GlobalReservationDaySnapshot(gResDaySnapshotID);
-      gResDaySnapshot.timestamp = event.block.timestamp;
-      gResDaySnapshot.investmentDay = gResDay.investmentDay;
-      gResDaySnapshot.effectiveWei = gResDay.effectiveWei;
-      gResDaySnapshot.actualWei = gResDay.actualWei;
-      gResDaySnapshot.reservationCount = gResDay.reservationCount;
+      let gResDaySnapshotID = reservation.investmentDay + "-" + args.timestamp;
+      let gResDaySnapshot = new GlobalReservationDaySnapshot({
+        id: gResDaySnapshotID,
+        timestamp: args.timestamp,
+        investmentDay: gResDay.investmentDay,
+        effectiveWei: gResDay.effectiveWei,
+        actualWei: gResDay.actualWei,
+        reservationCount: gResDay.reservationCount,
+      });
+      await GlobalReservationDaySnapshot.create(gResDaySnapshot);
 
-      let uResDayID = userID + "-" + reservation.investmentDay.toString();
-      let uResDay = UserReservationDay.load(uResDayID);
+      let uResDayID = userID + "-" + reservation.investmentDay;
+      let uResDay = await UserReservationDay.findOne({ id: uResDayID });
       if (uResDay == null) {
-        uResDay = new UserReservationDay(uResDayID);
-        uResDay.user = user.id;
-        uResDay.investmentDay = reservation.investmentDay;
-        uResDay.effectiveWei = ZERO;
-        uResDay.actualWei = ZERO;
-        uResDay.reservationCount = ZERO;
-        gResDay.userCount = gResDay.userCount.plus(ONE);
+        uResDay = new UserReservationDay({
+          id: uResDayID,
+          user: user.id,
+          investmentDay: reservation.investmentDay,
+          effectiveWei: ZERO,
+          actualWei: ZERO,
+          reservationCount: ZERO,
+        });
+        await UserReservationDay.create(uResDay);
+        gResDay.userCount = (
+          BigInt(gResDay.userCount) + BigInt(ONE)
+        ).toString();
         user.reservationDayCount = user.reservationDayCount.plus(ONE);
       }
       uResDay.effectiveWei = uResDay.effectiveWei.plus(
         reservation.effectiveWei
       );
       uResDay.actualWei = uResDay.actualWei.plus(reservation.effectiveWei);
-      uResDay.reservationCount = uResDay.reservationCount.plus(ONE);
-      uResDay.save();
+      uResDay.reservationCount = (
+        BigInt(uResDay.reservationCount) + BigInt(ONE)
+      ).toString();
 
-      gResDay.save();
-
-      user.save();
+      await uResDay.save();
+      await gResDay.save();
+      await user.save();
 
       gResDaySnapshot.userCount = gResDay.userCount;
-      gResDaySnapshot.save();
+      await gResDaySnapshot.save();
+
       let response = await Response.findOne({ id: "1" });
       if (response === null) {
         // create new response
