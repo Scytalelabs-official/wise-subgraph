@@ -189,7 +189,7 @@ const handleInterestScraped = {
   },
   async resolve(parent, args, context) {
     try {
-      let stake = await Stake.fineOne({ id: args.stakeID });
+      let stake = await Stake.findOne({ id: args.stakeID });
       stake.scrapeCount = (BigInt(stake.scrapeCount) + BigInt(ONE)).toString();
       stake.lastScrapeDay = args.scrapeDay;
       stake.scrapedYodas = (

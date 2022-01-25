@@ -74,14 +74,14 @@ async function upsertTransaction(
 ) {
   let transaction = await Transaction.findOne({ id: txdeployhash });
   if (transaction == null) {
-    let newData = new Transaction({
+    transaction = new Transaction({
       id: txdeployhash,
       blockNumber: blocknumber,
       timestamp: blocktimestamp,
       sender: txfrom,
       referral: null,
     });
-    await Transaction.create(newData);
+    await Transaction.create(transaction);
   }
   return transaction;
 }
@@ -105,7 +105,8 @@ const handleReferralAdded = {
       let transaction = await upsertTransaction(
         args.deployHash,
         args.blockHash,
-        args.timestamp.args.from
+        args.timestamp,
+        args.from
       );
 
       let referrerID = args.referral;
@@ -193,14 +194,13 @@ const handleReferralAdded = {
       let resList = [];
       let txHash = args.deployHash;
       for (let i = 1; i <= 50; i++) {
-        let resID = txHash + "-" + i.toString();
+        let resID = txHash + "-" + (i * 1000000000).toString();
         let reservation = await Reservation.findOne({ id: resID });
         if (reservation != null) {
           resList.push(reservation);
           // TODO populate reservation.referral and save?  Too costly?
         }
       }
-
       let nRes = BigInt(resList.length);
       let dayActualWei = BigInt(referral.actualWei) / nRes;
       let remainder = BigInt(referral.actualWei) % nRes;
@@ -273,7 +273,8 @@ const handleWiseReservation = {
       let transaction = await upsertTransaction(
         args.deployHash,
         args.blockHash,
-        args.timestamp.args.from
+        args.timestamp,
+        args.from
       );
 
       let userID = args.from;
@@ -325,8 +326,10 @@ const handleWiseReservation = {
         gResDay = new GlobalReservationDay({
           id: gResDayID,
           investmentDay: reservation.investmentDay,
-          minSupply: getMinSupply(BigInt(gResDay.investmentDay)).toString(),
-          maxSupply: (MAX_SUPPLY - BigInt(gResDay.minSupply)).toString(),
+          minSupply: getMinSupply(BigInt(reservation.investmentDay)).toString(),
+          maxSupply: (
+            MAX_SUPPLY - getMinSupply(BigInt(reservation.investmentDay))
+          ).toString(),
           effectiveWei: ZERO,
           actualWei: ZERO,
           reservationCount: ZERO,
@@ -370,12 +373,16 @@ const handleWiseReservation = {
         gResDay.userCount = (
           BigInt(gResDay.userCount) + BigInt(ONE)
         ).toString();
-        user.reservationDayCount = user.reservationDayCount.plus(ONE);
+        user.reservationDayCount = (
+          BigInt(user.reservationDayCount) + BigInt(ONE)
+        ).toString();
       }
-      uResDay.effectiveWei = uResDay.effectiveWei.plus(
-        reservation.effectiveWei
-      );
-      uResDay.actualWei = uResDay.actualWei.plus(reservation.effectiveWei);
+      uResDay.effectiveWei = (
+        BigInt(uResDay.effectiveWei) + BigInt(reservation.effectiveWei)
+      ).toString();
+      uResDay.actualWei = (
+        BigInt(uResDay.actualWei) + BigInt(reservation.effectiveWei)
+      ).toString();
       uResDay.reservationCount = (
         BigInt(uResDay.reservationCount) + BigInt(ONE)
       ).toString();
