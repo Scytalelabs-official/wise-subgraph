@@ -3,15 +3,8 @@ const {
   GraphQLString
 } = require("graphql");
 
-
 const Response = require("../models/response");
 const { responseType } = require("./types/response");
-
-function splitdata(data) {
-  var temp = data.split("(");
-  var result = temp[1].split(")");
-  return result[0];
-}
 
 const handleNewResponse = {
   type: responseType,

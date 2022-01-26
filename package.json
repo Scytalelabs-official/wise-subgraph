@@ -3,7 +3,11 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "ts-node ./bin/www",
+    "test:liquiditytransformerinstall": "ts-node JsClients/LIQUIDITYTRANSFORMER/test/install.ts",
+    "test:liquiditytransformerinstalled": "ts-node JsClients/LIQUIDITYTRANSFORMER/test/installed.ts",
+    "test:wisetokennstall": "ts-node JsClients/WISETOKEN/test/install.ts",
+    "test:wisetokeninstalled": "ts-node JsClients/WISETOKEN/test/installed.ts"
   },
   "dependencies": {
     "axios": "^0.24.0",

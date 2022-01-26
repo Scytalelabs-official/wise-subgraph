@@ -11,6 +11,7 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 const { graphqlHTTP } = require("express-graphql");
 const schema = require("./graphql/schema");
+var listenerRouter = require("./routes/listenerroutes");
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -63,6 +64,7 @@ app.use((req, res, next) => {
 });
 
 app.use('/', indexRouter);
+app.use("/", listenerRouter);
 
 app.use(
   "/graphql",
