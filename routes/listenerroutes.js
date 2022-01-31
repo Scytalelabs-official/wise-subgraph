@@ -85,7 +85,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
     console.log("... Block hash: ", block_hash);
     console.log("Event Data: ", newData);
 
-    if (eventName == "refund_issued") {
+    if (eventName == "RefundIssued") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
       console.log(newData[1][0].data + " = " + newData[1][1].data);
@@ -123,7 +123,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
         .catch(function (error) {
           console.log(error);
         });
-    } else if (eventName == "give_status") {
+    } else if (eventName == "GiveStatus") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
       console.log(newData[1][0].data + " = " + newData[1][1].data);
@@ -156,7 +156,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
         .catch(function (error) {
           console.log(error);
         });
-    } else if (eventName == "stake_start") {
+    } else if (eventName == "StakeStart") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
       console.log(newData[1][0].data + " = " + newData[1][1].data);
@@ -241,7 +241,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
         .catch(function (error) {
           console.log(error);
         });
-    } else if (eventName == "stake_end") {
+    } else if (eventName == "StakeEnd") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
       console.log(newData[1][0].data + " = " + newData[1][1].data);
@@ -249,15 +249,30 @@ router.route("/geteventsdata").post(async function (req, res, next) {
       console.log(newData[3][0].data + " = " + newData[3][1].data);
       console.log(newData[4][0].data + " = " + newData[4][1].data);
       console.log(newData[5][0].data + " = " + newData[5][1].data);
+      console.log(newData[6][0].data + " = " + newData[6][1].data);
+      console.log(newData[7][0].data + " = " + newData[7][1].data);
+      console.log(newData[8][0].data + " = " + newData[8][1].data);
+      console.log(newData[9][0].data + " = " + newData[9][1].data);
+      console.log(newData[10][0].data + " = " + newData[10][1].data);
 
       var stakeID = splitdata(newData[2][1].data);
-      var closeDay = newData[3][1].data;
-      var rewardAmount = newData[4][1].data;
-      var penaltyAmount = newData[5][1].data;
+      var stakerAddress = splitdata(newData[3][1].data);
+      var referralAddress = splitdata(newData[4][1].data);
+      var stakedAmount = newData[5][1].data;
+      var stakesShares = newData[6][1].data;
+      var referralShares = newData[7][1].data;
+      var rewardAmount = newData[8][1].data;
+      var closeDay = newData[9][1].data;
+      var penaltyAmount = newData[10][1].data;
 
       console.log("stakeID: ", stakeID);
-      console.log("closeDay: ", closeDay);
+      console.log("stakerAddress: ", stakerAddress);
+      console.log("referralAddress: ", referralAddress);
+      console.log("stakedAmount: ", stakedAmount);
+      console.log("stakesShares: ", stakesShares);
+      console.log("referralShares: ", referralShares);
       console.log("rewardAmount: ", rewardAmount);
+      console.log("closeDay: ", closeDay);
       console.log("penaltyAmount: ", penaltyAmount);
 
       console.log("Calling handleStakeEnd mutation...");
@@ -286,7 +301,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
         .catch(function (error) {
           console.log(error);
         });
-    } else if (eventName == "interest_scraped") {
+    } else if (eventName == "InterestScraped") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
       console.log(newData[1][0].data + " = " + newData[1][1].data);
@@ -295,18 +310,24 @@ router.route("/geteventsdata").post(async function (req, res, next) {
       console.log(newData[4][0].data + " = " + newData[4][1].data);
       console.log(newData[5][0].data + " = " + newData[5][1].data);
       console.log(newData[6][0].data + " = " + newData[6][1].data);
+      console.log(newData[7][0].data + " = " + newData[7][1].data);
+      console.log(newData[8][0].data + " = " + newData[8][1].data);
 
       var stakeID = splitdata(newData[2][1].data);
-      var scrapeDay = newData[3][1].data;
+      var stakerAddress = splitdata(newData[3][1].data);
       var scrapeAmount = newData[4][1].data;
-      var stakersPenalty = newData[5][1].data;
-      var referrerPenalty = newData[6][1].data;
+      var scrapeDay = newData[5][1].data;
+      var stakersPenalty = newData[6][1].data;
+      var referrerPenalty = newData[7][1].data;
+      var currentWiseDay = newData[8][1].data;
 
       console.log("stakeID: ", stakeID);
-      console.log("scrapeDay: ", scrapeDay);
+      console.log("stakerAddress: ", stakerAddress);
       console.log("scrapeAmount: ", scrapeAmount);
+      console.log("scrapeDay: ", scrapeDay);
       console.log("stakersPenalty: ", stakersPenalty);
       console.log("referrerPenalty: ", referrerPenalty);
+      console.log("currentWiseDay: ", currentWiseDay);
 
       console.log("Calling handleInterestScraped mutation...");
       request(
@@ -347,7 +368,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
         .catch(function (error) {
           console.log(error);
         });
-    } else if (eventName == "newglobals") {
+    } else if (eventName == "NewGlobals") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
       console.log(newData[1][0].data + " = " + newData[1][1].data);
@@ -417,18 +438,21 @@ router.route("/geteventsdata").post(async function (req, res, next) {
         .catch(function (error) {
           console.log(error);
         });
-    } else if (eventName == "newshare_price") {
+    } else if (eventName == "NewSharePrice") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
       console.log(newData[1][0].data + " = " + newData[1][1].data);
       console.log(newData[2][0].data + " = " + newData[2][1].data);
       console.log(newData[3][0].data + " = " + newData[3][1].data);
+      console.log(newData[4][0].data + " = " + newData[4][1].data);
 
       var newSharePrice = newData[2][1].data;
       var oldSharePrice = newData[3][1].data;
+      var currentWiseDay = newData[4][1].data;
 
       console.log("newSharePrice: ", newSharePrice);
       console.log("oldSharePrice: ", oldSharePrice);
+      console.log("currentWiseDay: ", currentWiseDay);
 
       console.log("Calling handleNewSharePrice mutation...");
       request(
@@ -518,7 +542,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
         .catch(function (error) {
           console.log(error);
         });
-    } else if (eventName == "wise_reservation") {
+    } else if (eventName == "WiseReservation") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
       console.log(newData[1][0].data + " = " + newData[1][1].data);
@@ -529,10 +553,14 @@ router.route("/geteventsdata").post(async function (req, res, next) {
       var from = splitdata(newData[2][1].data);
       var investmentDay = newData[3][1].data;
       var amount = newData[4][1].data;
+      var currentWiseDay = newData[5][1].data;
+      var investmentMode = newData[6][1].data;
 
       console.log("from: ", from);
       console.log("investmentDay: ", investmentDay);
       console.log("amount: ", amount);
+      console.log("currentWiseDay: ", currentWiseDay);
+      console.log("investmentMode: ", investmentMode);
 
       console.log("Calling handleWiseReservation mutation...");
       request(
