@@ -11,16 +11,15 @@ const {
 	CHAIN_NAME,
 	WISETOKEN_WASM_PATH,
 	WISETOKEN_MASTER_KEY_PAIR_PATH,
-	DECLARATION_CONTRACT,
-	GLOBAL_ADDRESS,
-	SYNTHETIC_BNB_ADDRESS,
 	WISETOKEN_INSTALL_PAYMENT_AMOUNT,
 	WISETOKEN_CONTRACT_NAME,
-	BEP_20_ADDRESS,
+	WCSPR_ADDRESS,
+	SYNTHETIC_CSPR_ADDRESS,
+	PAIR_ADDRESS,
 	ROUTER_ADDRESS,
-	STAKING_TOKEN_ADDRESS,
-	TIMING_ADDRESS,
-	USINGPROVEABLE_CONTRACT,
+	FACTORY_ADDRESS,
+	LIQUIDITY_GUARD_ADDRESS,
+	LAUNCH_TIME
 } = process.env;
 
 const KEYS = Keys.Ed25519.parseKeyFiles(
@@ -34,26 +33,26 @@ const test = async () => {
 		CHAIN_NAME!,
 		EVENT_STREAM_ADDRESS!
 	);
+	
+	// const installDeployHash = await wise.install(
+	// 	KEYS,
+	// 	WCSPR_ADDRESS!,
+	// 	SYNTHETIC_CSPR_ADDRESS!,
+	// 	PAIR_ADDRESS!,
+	// 	ROUTER_ADDRESS!,
+	// 	FACTORY_ADDRESS!,
+	// 	LIQUIDITY_GUARD_ADDRESS!,
+	// 	LAUNCH_TIME!,
+	// 	WISETOKEN_CONTRACT_NAME!,
+	// 	WISETOKEN_INSTALL_PAYMENT_AMOUNT!,
+	// 	WISETOKEN_WASM_PATH!
+	// );
 
-	const installDeployHash = await wise.install(
-		KEYS,
-		DECLARATION_CONTRACT!,
-		GLOBAL_ADDRESS!,
-		SYNTHETIC_BNB_ADDRESS!,
-		BEP_20_ADDRESS!,
-		ROUTER_ADDRESS!,
-		STAKING_TOKEN_ADDRESS!,
-		TIMING_ADDRESS!,
-		WISETOKEN_CONTRACT_NAME!,
-		WISETOKEN_INSTALL_PAYMENT_AMOUNT!,
-		WISETOKEN_WASM_PATH!
-	);
+	// console.log(`... Contract installation deployHash: ${installDeployHash}`);
 
-	console.log(`... Contract installation deployHash: ${installDeployHash}`);
+	// await getDeploy(NODE_ADDRESS!, installDeployHash);
 
-	await getDeploy(NODE_ADDRESS!, installDeployHash);
-
-	console.log(`... Contract installed successfully.`);
+	// console.log(`... Contract installed successfully.`);
 
 	let accountInfo = await utils.getAccountInfo(NODE_ADDRESS!, KEYS.publicKey);
 

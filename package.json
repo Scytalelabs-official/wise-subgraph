@@ -6,7 +6,7 @@
     "start": "ts-node ./bin/www",
     "test:liquiditytransformerinstall": "ts-node JsClients/LIQUIDITYTRANSFORMER/test/install.ts",
     "test:liquiditytransformerinstalled": "ts-node JsClients/LIQUIDITYTRANSFORMER/test/installed.ts",
-    "test:wisetokennstall": "ts-node JsClients/WISETOKEN/test/install.ts",
+    "test:wisetokeninstall": "ts-node JsClients/WISETOKEN/test/install.ts",
     "test:wisetokeninstalled": "ts-node JsClients/WISETOKEN/test/installed.ts"
   },
   "dependencies": {

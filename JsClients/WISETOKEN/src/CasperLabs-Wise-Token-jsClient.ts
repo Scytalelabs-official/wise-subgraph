@@ -29,8 +29,8 @@ import { concat } from "@ethersproject/bytes";
 // const axios = require("axios").default;
 
 class WISETokenClient {
-	private contractHash: string;
-	private contractPackageHash: string;
+	private contractHash: string="Wise_Token";
+	private contractPackageHash: string="Wise_Token";
 
 	private isListening = false;
 	private pendingDeploys: IPendingDeploy[] = [];
@@ -43,46 +43,44 @@ class WISETokenClient {
 
 	public async install(
 		keys: Keys.AsymmetricKey,
-		declarationContract: string,
-		globalsAddress: string,
-		syntheticBnbAddress: string,
-		bep20Address: string,
+		wcsprAddress: string,
+		syntheticCsprAddress: string,
+		pairAddress: string,
 		routerAddress: string,
-		stakingTokenAddress: string,
-		timingAddress: string,
+		factoryAddress: string,
+		liquidityguardAddress: string,
+		launchtime: string,
 		contractName: string,
 		paymentAmount: string,
 		wasmPath: string
 	) {
-		const declaration_contract = new CLByteArray(
-			Uint8Array.from(Buffer.from(declarationContract, "hex"))
+		const wcspr_contract = new CLByteArray(
+			Uint8Array.from(Buffer.from(wcsprAddress, "hex"))
 		);
-		const globals_address = new CLByteArray(
-			Uint8Array.from(Buffer.from(globalsAddress, "hex"))
+		const scspr_contract = new CLByteArray(
+			Uint8Array.from(Buffer.from(syntheticCsprAddress, "hex"))
 		);
-		const synthetic_bnb_address = new CLByteArray(
-			Uint8Array.from(Buffer.from(syntheticBnbAddress, "hex"))
+		const pair_contract = new CLByteArray(
+			Uint8Array.from(Buffer.from(pairAddress, "hex"))
 		);
-		const bep20_address = new CLByteArray(
-			Uint8Array.from(Buffer.from(bep20Address, "hex"))
-		);
-		const router_address = new CLByteArray(
+		const router_contract = new CLByteArray(
 			Uint8Array.from(Buffer.from(routerAddress, "hex"))
 		);
-		const staking_token_address = new CLByteArray(
-			Uint8Array.from(Buffer.from(stakingTokenAddress, "hex"))
+		const factory_contract = new CLByteArray(
+			Uint8Array.from(Buffer.from(factoryAddress, "hex"))
 		);
-		const timing_address = new CLByteArray(
-			Uint8Array.from(Buffer.from(timingAddress, "hex"))
+		const liquidity_guard_contract = new CLByteArray(
+			Uint8Array.from(Buffer.from(liquidityguardAddress, "hex"))
 		);
+		
 		const runtimeArgs = RuntimeArgs.fromMap({
-			declaration_contract: CLValueBuilder.key(declaration_contract),
-			globals_address: CLValueBuilder.key(globals_address),
-			synthetic_bnb_address: CLValueBuilder.key(synthetic_bnb_address),
-			bep20_address: CLValueBuilder.key(bep20_address),
-			router_address: CLValueBuilder.key(router_address),
-			staking_token_address: CLValueBuilder.key(staking_token_address),
-			timing_address: CLValueBuilder.key(timing_address),
+			wcspr: CLValueBuilder.key(wcspr_contract),
+			scspr: CLValueBuilder.key(scspr_contract),
+			pair: CLValueBuilder.key(pair_contract),
+			router: CLValueBuilder.key(router_contract),
+			factory: CLValueBuilder.key(factory_contract),
+			liquidity_guard: CLValueBuilder.key(liquidity_guard_contract),
+			launch_time: CLValueBuilder.u256(launchtime),
 			contract_name: CLValueBuilder.string(contractName),
 		});
 

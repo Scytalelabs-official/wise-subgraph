@@ -29,8 +29,8 @@ import blake from "blakejs";
 // const axios = require("axios").default;
 
 class LIQUIDITYClient {
-	private contractHash: string;
-	private contractPackageHash: string;
+	private contractHash: string="Liquidity_transformer";
+	private contractPackageHash: string="Liquidity_transformer";
 
 	private isListening = false;
 	private pendingDeploys: IPendingDeploy[] = [];
@@ -43,26 +43,37 @@ class LIQUIDITYClient {
 
 	public async install(
 		keys: Keys.AsymmetricKey,
-		usingProvable: string,
+		wcsprAddress: string,
+		syntheticCsprAddress: string,
+		pairAddress: string,
+		routerAddress: string,
 		wiseToken: string,
-		uniswapPair: string,
 		contractName: string,
 		paymentAmount: string,
 		wasmPath: string
 	) {
-		const usingProvableContractHash = new CLByteArray(
-			Uint8Array.from(Buffer.from(usingProvable, "hex"))
+		const wcspr_contract = new CLByteArray(
+			Uint8Array.from(Buffer.from(wcsprAddress, "hex"))
+		);
+		const scspr_contract = new CLByteArray(
+			Uint8Array.from(Buffer.from(syntheticCsprAddress, "hex"))
+		);
+		const pair_contract = new CLByteArray(
+			Uint8Array.from(Buffer.from(pairAddress, "hex"))
+		);
+		const router_contract = new CLByteArray(
+			Uint8Array.from(Buffer.from(routerAddress, "hex"))
 		);
 		const wiseTokenContractHash = new CLByteArray(
 			Uint8Array.from(Buffer.from(wiseToken, "hex"))
 		);
-		const uniswapPairContractHash = new CLByteArray(
-			Uint8Array.from(Buffer.from(uniswapPair, "hex"))
-		);
+		
 		const runtimeArgs = RuntimeArgs.fromMap({
-			using_provable: CLValueBuilder.key(usingProvableContractHash),
+			wcspr: CLValueBuilder.key(wcspr_contract),
+			scspr: CLValueBuilder.key(scspr_contract),
+			uniswap_pair: CLValueBuilder.key(pair_contract),
+			uniswap_router: CLValueBuilder.key(router_contract),
 			wise_token: CLValueBuilder.key(wiseTokenContractHash),
-			uniswap_pair: CLValueBuilder.key(uniswapPairContractHash),
 			contract_name: CLValueBuilder.string(contractName),
 		});
 
