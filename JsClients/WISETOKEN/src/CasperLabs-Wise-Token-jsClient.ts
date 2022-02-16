@@ -21,25 +21,51 @@ import {
 	CLU64,
 	CLU256,
 } from "casper-js-sdk";
-import { WISEEvents } from "./constants";
 import * as utils from "./utils";
 import { RecipientType, IPendingDeploy } from "./types";
-import blake from "blakejs";
+import * as blake from "blakejs";
 import { concat } from "@ethersproject/bytes";
-// const axios = require("axios").default;
+import {createRecipientAddress } from "./utils";
 
 class WISETokenClient {
+
+	private contractName: string="Wise_Token";
 	private contractHash: string="Wise_Token";
 	private contractPackageHash: string="Wise_Token";
 
+	private namedKeys: {
+		balances:string
+		metadata: string;
+		nonces: string;
+		allowances: string;
+		ownedTokens: string;
+		owners: string;
+		paused: string;
+		
+	};
+
 	private isListening = false;
 	private pendingDeploys: IPendingDeploy[] = [];
-
+  
 	constructor(
-		private nodeAddress: string,
-		private chainName: string,
-		private eventStreamAddress?: string
-	) {}
+  
+	  private nodeAddress: string,
+	  private chainName: string,
+	  private eventStreamAddress?: string,
+	  
+	) 
+	{
+	  this.namedKeys= {
+		balances:"null",
+		metadata: "null",
+		nonces: "null",
+		allowances: "null",
+		ownedTokens: "null",
+		owners: "null",
+		paused: "null"
+	  }; 
+	}
+  
 
 	public async install(
 		keys: Keys.AsymmetricKey,
@@ -100,6 +126,357 @@ class WISETokenClient {
 		}
 	}
 
+	public async setContractHash(hash: string) {
+		const stateRootHash = await utils.getStateRootHash(this.nodeAddress);
+		const contractData = await utils.getContractData(
+		this.nodeAddress,
+		stateRootHash,
+		hash
+		);
+		const { contractPackageHash, namedKeys } = contractData.Contract!;
+		this.contractHash = hash;
+		this.contractPackageHash = contractPackageHash.replace(
+		"contract-package-wasm",
+		""
+		);
+		const LIST_OF_NAMED_KEYS = [
+		'balances',
+		'nonces',
+		'allowances',
+		`${this.contractName}_package_hash`,
+		`${this.contractName}_package_hash_wrapped`,
+		`${this.contractName}_contract_hash`,
+		`${this.contractName}_contract_hash_wrapped`,
+		`${this.contractName}_package_access_token`,
+		];
+		// @ts-ignore
+		this.namedKeys = namedKeys.reduce((acc, val) => {
+		if (LIST_OF_NAMED_KEYS.includes(val.name)) {
+			return { ...acc, [utils.camelCased(val.name)]: val.key };
+		}
+		return acc;
+		}, {});
+	}
+
+	public async name() {
+		const result = await contractSimpleGetter(
+		this.nodeAddress,
+		this.contractHash,
+		["name"]
+		);
+		return result.value();
+	}
+
+	public async symbol() {
+		const result = await contractSimpleGetter(
+		this.nodeAddress,
+		this.contractHash,
+		["symbol"]
+		);
+		return result.value();
+	}
+
+	public async decimal() {
+		const result = await contractSimpleGetter(
+		this.nodeAddress,
+		this.contractHash,
+		["decimals"]
+		);
+		return result.value();
+	}
+
+	public async totalSupply() {
+		const result = await contractSimpleGetter(
+		this.nodeAddress,
+		this.contractHash,
+		["total_supply"]
+		);
+		return result.value();
+	}
+
+	public async getPairAddress() {
+		const result = await contractSimpleGetter(
+			this.nodeAddress,
+			this.contractHash,
+			["get_pair_address"]
+		);
+		return result.value();
+	}
+
+	public async getTotalStaked() {
+		const result = await contractSimpleGetter(
+			this.nodeAddress,
+			this.contractHash,
+			["get_total_staked"]
+		);
+		return result.value();
+	}
+
+	public async getLiquidityTransformer() {
+		const result = await contractSimpleGetter(
+			this.nodeAddress,
+			this.contractHash,
+			["get_liquidity_transformer"]
+		);
+		return result.value();
+	}
+
+	public async getSyntheticTokenAddress() {
+		const result = await contractSimpleGetter(
+			this.nodeAddress,
+			this.contractHash,
+			["get_synthetic_token_address"]
+		);
+		return result.value();
+	}
+
+	public async balanceOf(account: string) {
+		try {
+		
+		const result = await utils.contractDictionaryGetter(
+			this.nodeAddress,
+			account,
+			this.namedKeys.balances
+		);
+		const maybeValue = result.value().unwrap();
+		return maybeValue.value().toString();
+
+		} catch (error) {
+		return "0";
+		}
+		
+	}
+
+	public async nonce(accountHash: string) {
+		const result = await utils.contractDictionaryGetter(
+		this.nodeAddress,
+		accountHash,
+		this.namedKeys.nonces
+		);
+		const maybeValue = result.value().unwrap();
+		return maybeValue.value().toString();
+	}
+
+	public async allowance(owner:string, spender:string) {
+		try {
+		const _spender = new CLByteArray(
+			Uint8Array.from(Buffer.from(spender, "hex"))
+		);
+
+		const keyOwner=new CLKey(new CLAccountHash(Uint8Array.from(Buffer.from(owner, "hex"))));
+		const keySpender = createRecipientAddress(_spender);
+		const finalBytes = concat([CLValueParsers.toBytes(keyOwner).unwrap(), CLValueParsers.toBytes(keySpender).unwrap()]);
+		const blaked = blake.blake2b(finalBytes, undefined, 32);
+		const encodedBytes = Buffer.from(blaked).toString("hex");
+
+		const result = await utils.contractDictionaryGetter(
+			this.nodeAddress,
+			encodedBytes,
+			this.namedKeys.allowances
+		);
+
+		const maybeValue = result.value().unwrap();
+		return maybeValue.value().toString();
+		} catch (error) {
+		return "0";
+		}
+
+	}
+
+	public async approve(
+		keys: Keys.AsymmetricKey,
+		spender: string,
+		amount: string,
+		paymentAmount: string
+	) {
+
+		const _spender = new CLByteArray(
+				Uint8Array.from(Buffer.from(spender, "hex"))
+			);
+		const runtimeArgs = RuntimeArgs.fromMap({
+		spender: utils.createRecipientAddress(_spender),
+		amount: CLValueBuilder.u256(amount)
+		});
+
+		const deployHash = await contractCall({
+		chainName: this.chainName,
+		contractHash: this.contractHash,
+		entryPoint: "approve",
+		keys,
+		nodeAddress: this.nodeAddress,
+		paymentAmount,
+		runtimeArgs,
+		});
+
+		if (deployHash !== null) {
+		
+		return deployHash;
+		} else {
+		throw Error("Invalid Deploy");
+		}
+	}
+	public async transfer(
+		keys: Keys.AsymmetricKey,
+		recipient: RecipientType,
+		amount: string,
+		paymentAmount: string
+	) {
+
+		const runtimeArgs = RuntimeArgs.fromMap({
+		recipient: utils.createRecipientAddress(recipient),
+		amount: CLValueBuilder.u256(amount)
+		});
+
+		const deployHash = await contractCall({
+		chainName: this.chainName,
+		contractHash: this.contractHash,
+		entryPoint: "transfer_Jsclient",
+		keys,
+		nodeAddress: this.nodeAddress,
+		paymentAmount,
+		runtimeArgs,
+		});
+
+		if (deployHash !== null) {
+		
+		return deployHash;
+		} else {
+		throw Error("Invalid Deploy");
+		}
+	}
+
+	public async transferFrom(
+		keys: Keys.AsymmetricKey,
+		owner: RecipientType,
+		recipient: RecipientType,
+		amount: string,
+		paymentAmount: string
+	) {
+
+		const runtimeArgs = RuntimeArgs.fromMap({
+		owner: utils.createRecipientAddress(owner),
+		recipient: utils.createRecipientAddress(recipient),
+		amount: CLValueBuilder.u256(amount)
+		});
+
+
+		const deployHash = await contractCall({
+		chainName: this.chainName,
+		contractHash: this.contractHash,
+		entryPoint: "transfer_from_Jsclient",
+		keys,
+		nodeAddress: this.nodeAddress,
+		paymentAmount,
+		runtimeArgs,
+		});
+
+		if (deployHash !== null) {
+		
+		return deployHash;
+		} else {
+		throw Error("Invalid Deploy");
+		}
+	}
+
+	public async mint(
+		keys: Keys.AsymmetricKey,
+		to: RecipientType,
+		amount: string,
+		paymentAmount: string
+	) {
+		
+		const runtimeArgs = RuntimeArgs.fromMap({
+		to:utils.createRecipientAddress(to),
+		amount: CLValueBuilder.u256(amount)
+		});
+
+		const deployHash = await contractCall({
+		chainName: this.chainName,
+		contractHash: this.contractHash,
+		entryPoint: "mint",
+		keys,
+		nodeAddress: this.nodeAddress,
+		paymentAmount,
+		runtimeArgs,
+		});
+
+		if (deployHash !== null) {
+		
+		return deployHash;
+		} else {
+		throw Error("Invalid Deploy");
+		}
+	}
+
+	public async burn(
+		keys: Keys.AsymmetricKey,
+		from: RecipientType,
+		amount: string,
+		paymentAmount: string
+	) {
+
+		const runtimeArgs = RuntimeArgs.fromMap({
+		from: utils.createRecipientAddress(from),
+		amount: CLValueBuilder.u256(amount)
+		});
+
+		const deployHash = await contractCall({
+		chainName: this.chainName,
+		contractHash: this.contractHash,
+		entryPoint: "burn",
+		keys,
+		nodeAddress: this.nodeAddress,
+		paymentAmount,
+		runtimeArgs,
+		});
+
+		if (deployHash !== null) {
+		
+		return deployHash;
+		} else {
+		throw Error("Invalid Deploy");
+		}
+	}
+
+	public async permit(
+		keys: Keys.AsymmetricKey,
+		publicKey: string,
+		signature: string,
+		owner: RecipientType,
+		spender: RecipientType,
+		amount: string,
+		deadline: string,
+		paymentAmount: string
+	) {
+
+		const runtimeArgs = RuntimeArgs.fromMap({
+		public: CLValueBuilder.string(publicKey),
+		signature: CLValueBuilder.string(signature),
+		owner: utils.createRecipientAddress(owner),
+		spender: utils.createRecipientAddress(spender),
+		value: CLValueBuilder.u256(amount),
+		deadline: CLValueBuilder.u64(deadline)
+		});
+
+
+		const deployHash = await contractCall({
+		chainName: this.chainName,
+		contractHash: this.contractHash,
+		entryPoint: "permit",
+		keys,
+		nodeAddress: this.nodeAddress,
+		paymentAmount,
+		runtimeArgs,
+		});
+
+		if (deployHash !== null) {
+		
+		return deployHash;
+		} else {
+		throw Error("Invalid Deploy");
+		}
+	}
+
 	public async setLiquidityTransfomer(
 		keys: Keys.AsymmetricKey,
 		immutableTransformer: string,
@@ -129,14 +506,13 @@ class WISETokenClient {
 		});
 
 		if (deployHash !== null) {
-			// this.addPendingDeploy(LIQUIDITYEvents.SetFeeTo, deployHash);
 			return deployHash;
 		} else {
 			throw Error("Invalid Deploy");
 		}
 	}
 
-	public async setBusd(
+	public async setStableUsd(
 		keys: Keys.AsymmetricKey,
 		equalizerAddress: string,
 		paymentAmount: string
@@ -152,7 +528,7 @@ class WISETokenClient {
 		const deployHash = await contractCall({
 			chainName: this.chainName,
 			contractHash: this.contractHash,
-			entryPoint: "set_busd",
+			entryPoint: "set_stable_usd",
 			paymentAmount,
 			nodeAddress: this.nodeAddress,
 			keys: keys,
@@ -160,7 +536,6 @@ class WISETokenClient {
 		});
 
 		if (deployHash !== null) {
-			// this.addPendingDeploy(LIQUIDITYEvents.SetFeeTo, deployHash);
 			return deployHash;
 		} else {
 			throw Error("Invalid Deploy");
@@ -181,7 +556,36 @@ class WISETokenClient {
 		});
 
 		if (deployHash !== null) {
-			// this.addPendingDeploy(LIQUIDITYEvents.SetFeeTo, deployHash);
+			return deployHash;
+		} else {
+			throw Error("Invalid Deploy");
+		}
+	}
+	
+	public async changeKeeper(
+		keys: Keys.AsymmetricKey,
+		keeper: string,
+		paymentAmount: string
+	) {
+		const _keeper = new CLByteArray(
+			Uint8Array.from(Buffer.from(keeper, "hex"))
+		);
+
+		const runtimeArgs = RuntimeArgs.fromMap({
+			keeper: CLValueBuilder.key(_keeper),
+		});
+
+		const deployHash = await contractCall({
+			chainName: this.chainName,
+			contractHash: this.contractHash,
+			entryPoint: "change_keeper",
+			paymentAmount,
+			nodeAddress: this.nodeAddress,
+			keys: keys,
+			runtimeArgs,
+		});
+
+		if (deployHash !== null) {
 			return deployHash;
 		} else {
 			throw Error("Invalid Deploy");
@@ -214,7 +618,6 @@ class WISETokenClient {
 		});
 
 		if (deployHash !== null) {
-			// this.addPendingDeploy(LIQUIDITYEvents.SetFeeTo, deployHash);
 			return deployHash;
 		} else {
 			throw Error("Invalid Deploy");
@@ -238,113 +641,456 @@ class WISETokenClient {
 		});
 
 		if (deployHash !== null) {
-			// this.addPendingDeploy(LIQUIDITYEvents.SetFeeTo, deployHash);
+			return deployHash;
+		} else {
+			throw Error("Invalid Deploy");
+		}
+	}
+	public async liquidityGuardTrigger(
+		keys: Keys.AsymmetricKey,
+		paymentAmount: string
+	) {
+		const runtimeArgs = RuntimeArgs.fromMap({});
+
+		const deployHash = await contractCall({
+			chainName: this.chainName,
+			contractHash: this.contractHash,
+			entryPoint: "liquidity_guard_trigger",
+			paymentAmount,
+			nodeAddress: this.nodeAddress,
+			keys: keys,
+			runtimeArgs,
+		});
+
+		if (deployHash !== null) {
+			return deployHash;
+		} else {
+			throw Error("Invalid Deploy");
+		}
+	}
+	public async manualDailySnapshot(
+		keys: Keys.AsymmetricKey,
+		paymentAmount: string
+	) {
+		const runtimeArgs = RuntimeArgs.fromMap({});
+
+		const deployHash = await contractCall({
+			chainName: this.chainName,
+			contractHash: this.contractHash,
+			entryPoint: "manual_daily_snapshot",
+			paymentAmount,
+			nodeAddress: this.nodeAddress,
+			keys: keys,
+			runtimeArgs,
+		});
+
+		if (deployHash !== null) {
+			return deployHash;
+		} else {
+			throw Error("Invalid Deploy");
+		}
+	}
+	public async manualDailySnapshotPoint(
+		keys: Keys.AsymmetricKey,
+		update_day: string,
+		paymentAmount: string
+	) {
+		const runtimeArgs = RuntimeArgs.fromMap({
+			update_day: CLValueBuilder.u64(update_day),
+		});
+
+		const deployHash = await contractCall({
+			chainName: this.chainName,
+			contractHash: this.contractHash,
+			entryPoint: "manual_daily_snapshot_point",
+			paymentAmount,
+			nodeAddress: this.nodeAddress,
+			keys: keys,
+			runtimeArgs,
+		});
+
+		if (deployHash !== null) {
+			return deployHash;
+		} else {
+			throw Error("Invalid Deploy");
+		}
+	}
+	public async referrer_interest(
+		keys: Keys.AsymmetricKey,
+		referrer_id: string,
+		scrape_days: string,
+		paymentAmount:string
+	) {
+
+		const runtimeArgs = RuntimeArgs.fromMap({
+			referrer_id: CLValueBuilder.u256(referrer_id),
+			scrape_days: CLValueBuilder.u256(scrape_days),
+		});
+
+		const deployHash = await contractCall({
+			nodeAddress: this.nodeAddress,
+			keys:keys,
+			chainName: this.chainName,
+			contractHash: this.contractHash,
+			entryPoint: "referrer_interest",
+			runtimeArgs,
+			paymentAmount,
+		});
+
+		if (deployHash !== null) {
+			return deployHash;
+		} else {
+			throw Error("Invalid Deploy");
+		}
+	}
+	public async referrer_interest_bulk(
+		keys: Keys.AsymmetricKey,
+		referrer_ids: string,
+		scrape_days: string,
+		paymentAmount:string
+	) {
+
+		const runtimeArgs = RuntimeArgs.fromMap({
+			referrer_ids: CLValueBuilder.u256(referrer_ids),
+			scrape_days: CLValueBuilder.u256(scrape_days),
+		});
+
+		const deployHash = await contractCall({
+			nodeAddress: this.nodeAddress,
+			keys:keys,
+			chainName: this.chainName,
+			contractHash: this.contractHash,
+			entryPoint: "referrer_interest_bulk",
+			runtimeArgs,
+			paymentAmount,
+		});
+
+		if (deployHash !== null) {
+			return deployHash;
+		} else {
+			throw Error("Invalid Deploy");
+		}
+	}
+	
+	public async createStakeWithCsprJsclient(
+		keys: Keys.AsymmetricKey,
+		lock_days: string,
+		referrer: string,
+		amount: string,
+		purse: string,
+		paymentAmount:string
+	) {
+		const referrerbytearray = new CLByteArray(Uint8Array.from(Buffer.from(referrer, 'hex')));
+		const _purse = new CLURef(
+			decodeBase16(purse),
+			AccessRights.READ_ADD_WRITE
+		);
+		const runtimeArgs = RuntimeArgs.fromMap({
+			lock_days: CLValueBuilder.u64(lock_days),
+			referrer: CLValueBuilder.key(referrerbytearray),
+			amount: CLValueBuilder.u256(amount),
+			purse: _purse
+		});
+
+		const deployHash = await contractCall({
+			nodeAddress: this.nodeAddress,
+			keys:keys,
+			chainName: this.chainName,
+			contractHash: this.contractHash,
+			entryPoint: "create_stake_with_cspr_Jsclient",
+			runtimeArgs,
+			paymentAmount,
+		});
+
+		if (deployHash !== null) {
 			return deployHash;
 		} else {
 			throw Error("Invalid Deploy");
 		}
 	}
 
-	/*=========================Getters=========================*/
-
-	//Need Consultancy
-	//Cannot pass more than 1 argument
-	//Cannot pass any argument then then string
-	public async createStakeWithBnb(
-		lock_days: CLU64,
-		_referrer: CLPublicKey,
-		amount: CLU256,
-		purse: CLURef
+	public async createStakeWithTokenJsclient(
+		keys: Keys.AsymmetricKey,
+		token_address: string,
+		token_amount: string,
+		lock_days: string,
+		referrer: string,
+		paymentAmount:string
 	) {
-		const referrer = new CLKey(new CLAccountHash(_referrer.toAccountHash()));
+		const tokenbytearray = new CLByteArray(Uint8Array.from(Buffer.from(token_address, 'hex')));
+		const referrerbytearray = new CLByteArray(Uint8Array.from(Buffer.from(referrer, 'hex')));
 
-		const finalBytes = concat([
-			CLValueParsers.toBytes(lock_days).unwrap(),
-			CLValueParsers.toBytes(referrer).unwrap(),
-			CLValueParsers.toBytes(amount).unwrap(),
-			CLValueParsers.toBytes(purse).unwrap(),
-		]);
-		const blaked = blake.blake2b(finalBytes, undefined, 32);
-		const encodedBytes = Buffer.from(blaked).toString("hex");
+		const runtimeArgs = RuntimeArgs.fromMap({
+			token_address: CLValueBuilder.key(tokenbytearray),
+			token_amount: CLValueBuilder.u256(token_amount),
+			lock_days: CLValueBuilder.u64(lock_days),
+			referrer: CLValueBuilder.key(referrerbytearray)
+		});
 
-		const result = await utils.contractDictionaryGetter(
-			this.nodeAddress,
-			encodedBytes,
-			"create_stake_with_bnb"
-		);
-		const maybeValue = result.value().unwrap();
-		return maybeValue.value().toString();
+		const deployHash = await contractCall({
+			nodeAddress: this.nodeAddress,
+			keys:keys,
+			chainName: this.chainName,
+			contractHash: this.contractHash,
+			entryPoint: "create_stake_with_token_Jsclient",
+			runtimeArgs,
+			paymentAmount,
+		});
+
+		if (deployHash !== null) {
+			return deployHash;
+		} else {
+			throw Error("Invalid Deploy");
+		}
 	}
-
-	//Need Consultancy
-	//Cannot pass more than 1 argument
-	//Cannot pass any argument then then string
-	public async createStakeWithToken(
-		tokenAddress: CLPublicKey,
-		token_amount: CLU256,
-		lock_days: CLU64,
-		_referrer: CLPublicKey
+	public async createStakeJsclient(
+		keys: Keys.AsymmetricKey,
+		staked_amount: string,
+		lock_days: string,
+		referrer: string,
+		paymentAmount:string
 	) {
-		const token_address = new CLKey(
-			new CLAccountHash(tokenAddress.toAccountHash())
-		);
-		const referrer = new CLKey(new CLAccountHash(_referrer.toAccountHash()));
 
-		const finalBytes = concat([
-			CLValueParsers.toBytes(token_address).unwrap(),
-			CLValueParsers.toBytes(token_amount).unwrap(),
-			CLValueParsers.toBytes(lock_days).unwrap(),
-			CLValueParsers.toBytes(referrer).unwrap(),
-		]);
-		const blaked = blake.blake2b(finalBytes, undefined, 32);
+		const referrerbytearray = new CLByteArray(Uint8Array.from(Buffer.from(referrer, 'hex')));
 
-		const encodedBytes = Buffer.from(blaked).toString("hex");
+		const runtimeArgs = RuntimeArgs.fromMap({
+			staked_amount: CLValueBuilder.u256(staked_amount),
+			lock_days: CLValueBuilder.u64(lock_days),
+			referrer: CLValueBuilder.key(referrerbytearray)
+		});
 
-		const result = await utils.contractDictionaryGetter(
-			this.nodeAddress,
-			encodedBytes,
-			"create_stake_with_token"
-		);
-		const maybeValue = result.value().unwrap();
-		return maybeValue.value().toString();
+		const deployHash = await contractCall({
+			nodeAddress: this.nodeAddress,
+			keys:keys,
+			chainName: this.chainName,
+			contractHash: this.contractHash,
+			entryPoint: "create_stake_Jsclient",
+			runtimeArgs,
+			paymentAmount,
+		});
+
+		if (deployHash !== null) {
+			return deployHash;
+		} else {
+			throw Error("Invalid Deploy");
+		}
 	}
+	public async endStakeJsclient(
+		keys: Keys.AsymmetricKey,
+		stake_id: string,
+		paymentAmount:string
+	) {
 
-	public async getPairAddress() {
-		const result = await utils.contractDictionaryGetter(
-			this.nodeAddress,
-			this.contractHash,
-			"get_pair_address"
-		);
-		const maybeValue = result.value().unwrap();
-		return maybeValue.value().toString();
+		const runtimeArgs = RuntimeArgs.fromMap({
+			stake_id: CLValueBuilder.u256(stake_id),
+		});
+
+		const deployHash = await contractCall({
+			nodeAddress: this.nodeAddress,
+			keys:keys,
+			chainName: this.chainName,
+			contractHash: this.contractHash,
+			entryPoint: "end_stake_Jsclient",
+			runtimeArgs,
+			paymentAmount,
+		});
+
+		if (deployHash !== null) {
+			return deployHash;
+		} else {
+			throw Error("Invalid Deploy");
+		}
 	}
+	public async scrapeInterestJsclient(
+		keys: Keys.AsymmetricKey,
+		stake_id: string,
+		scrape_days: string,
+		paymentAmount:string
+	) {
 
-	public async getTotalStaked() {
-		const result = await utils.contractDictionaryGetter(
-			this.nodeAddress,
-			this.contractHash,
-			"get_total_staked"
-		);
-		return result.value().toString();
+		const runtimeArgs = RuntimeArgs.fromMap({
+			stake_id: CLValueBuilder.u256(stake_id),
+			scrape_days: CLValueBuilder.u64(scrape_days),
+		});
+
+		const deployHash = await contractCall({
+			nodeAddress: this.nodeAddress,
+			keys:keys,
+			chainName: this.chainName,
+			contractHash: this.contractHash,
+			entryPoint: "scrape_interest_Jsclient",
+			runtimeArgs,
+			paymentAmount,
+		});
+
+		if (deployHash !== null) {
+			return deployHash;
+		} else {
+			throw Error("Invalid Deploy");
+		}
 	}
+	public async checkReferralsByIdJsclient(
+		keys: Keys.AsymmetricKey,
+		_referrer: string,
+		referral_id: string,
+		paymentAmount:string
+	) {
+		const referrerbytearray = new CLByteArray(Uint8Array.from(Buffer.from(_referrer, 'hex')));
+		const runtimeArgs = RuntimeArgs.fromMap({
+			referrer: CLValueBuilder.key(referrerbytearray),
+			referral_id: CLValueBuilder.u256(referral_id),
+		});
 
-	public async getLiquidityTransformer() {
-		const result = await utils.contractDictionaryGetter(
-			this.nodeAddress,
-			this.contractHash,
-			"get_liquidity_transformer"
-		);
-		return result.value().toString();
+		const deployHash = await contractCall({
+			nodeAddress: this.nodeAddress,
+			keys:keys,
+			chainName: this.chainName,
+			contractHash: this.contractHash,
+			entryPoint: "check_referrals_by_id_Jsclient",
+			runtimeArgs,
+			paymentAmount,
+		});
+
+		if (deployHash !== null) {
+			return deployHash;
+		} else {
+			throw Error("Invalid Deploy");
+		}
 	}
+	public async checkMatureStakeJsclient(
+		keys: Keys.AsymmetricKey,
+		staker: string,
+		stake_id: string,
+		paymentAmount:string
+	) {
+		const stakerbytearray = new CLByteArray(Uint8Array.from(Buffer.from(staker, 'hex')));
+		const runtimeArgs = RuntimeArgs.fromMap({
+			staker: CLValueBuilder.key(stakerbytearray),
+			stake_id: CLValueBuilder.u256(stake_id),
+		});
 
-	public async getSyntheticTokenAddress() {
-		const result = await utils.contractDictionaryGetter(
-			this.nodeAddress,
-			this.contractHash,
-			"get_synthetic_token_address"
-		);
-		const maybeValue = result.value().unwrap();
-		return maybeValue.value().toString();
+		const deployHash = await contractCall({
+			nodeAddress: this.nodeAddress,
+			keys:keys,
+			chainName: this.chainName,
+			contractHash: this.contractHash,
+			entryPoint: "check_mature_stake_Jsclient",
+			runtimeArgs,
+			paymentAmount,
+		});
+
+		if (deployHash !== null) {
+			return deployHash;
+		} else {
+			throw Error("Invalid Deploy");
+		}
+	}
+	public async checkStakeByIdJsclient(
+		keys: Keys.AsymmetricKey,
+		staker: string,
+		stake_id: string,
+		paymentAmount:string
+	) {
+		const stakerbytearray = new CLByteArray(Uint8Array.from(Buffer.from(staker, 'hex')));
+		const runtimeArgs = RuntimeArgs.fromMap({
+			staker: CLValueBuilder.key(stakerbytearray),
+			stake_id: CLValueBuilder.u256(stake_id),
+		});
+
+		const deployHash = await contractCall({
+			nodeAddress: this.nodeAddress,
+			keys:keys,
+			chainName: this.chainName,
+			contractHash: this.contractHash,
+			entryPoint: "check_stake_by_id_Jsclient",
+			runtimeArgs,
+			paymentAmount,
+		});
+
+		if (deployHash !== null) {
+			return deployHash;
+		} else {
+			throw Error("Invalid Deploy");
+		}
+	}
+	public async createLiquidityStakeJsclient(
+		keys: Keys.AsymmetricKey,
+		liquidity_tokens: string,
+		paymentAmount:string
+	) {
+	
+		const runtimeArgs = RuntimeArgs.fromMap({
+			liquidity_tokens: CLValueBuilder.u256(liquidity_tokens),
+		});
+
+		const deployHash = await contractCall({
+			nodeAddress: this.nodeAddress,
+			keys:keys,
+			chainName: this.chainName,
+			contractHash: this.contractHash,
+			entryPoint: "create_liquidity_stake_Jsclient",
+			runtimeArgs,
+			paymentAmount,
+		});
+
+		if (deployHash !== null) {
+			return deployHash;
+		} else {
+			throw Error("Invalid Deploy");
+		}
+	}
+	public async endLiquidityStakeJsclient(
+		keys: Keys.AsymmetricKey,
+		liquidity_stake_id: string,
+		paymentAmount:string
+	) {
+		const runtimeArgs = RuntimeArgs.fromMap({
+			staker: CLValueBuilder.u256(liquidity_stake_id),
+		});
+
+		const deployHash = await contractCall({
+			nodeAddress: this.nodeAddress,
+			keys:keys,
+			chainName: this.chainName,
+			contractHash: this.contractHash,
+			entryPoint: "end_liquidity_stake_Jsclient",
+			runtimeArgs,
+			paymentAmount,
+		});
+
+		if (deployHash !== null) {
+			return deployHash;
+		} else {
+			throw Error("Invalid Deploy");
+		}
+	}
+	public async check_liquidity_stake_by_id_Jsclient(
+		keys: Keys.AsymmetricKey,
+		staker: string,
+		liquidity_stake_id: string,
+		paymentAmount:string
+	) {
+		const stakerbytearray = new CLByteArray(Uint8Array.from(Buffer.from(staker, 'hex')));
+		const runtimeArgs = RuntimeArgs.fromMap({
+			staker: CLValueBuilder.key(stakerbytearray),
+			liquidity_stake_id: CLValueBuilder.u256(liquidity_stake_id),
+		});
+
+		const deployHash = await contractCall({
+			nodeAddress: this.nodeAddress,
+			keys:keys,
+			chainName: this.chainName,
+			contractHash: this.contractHash,
+			entryPoint: "check_liquidity_stake_by_id_Jsclient",
+			runtimeArgs,
+			paymentAmount,
+		});
+
+		if (deployHash !== null) {
+			return deployHash;
+		} else {
+			throw Error("Invalid Deploy");
+		}
 	}
 }
 

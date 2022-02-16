@@ -54,20 +54,7 @@ const wise = new WISETokenClient(
 
 const test = async () => {
 	
-	let accountInfo = await utils.getAccountInfo(NODE_ADDRESS!, KEYS.publicKey);
-
-	console.log(`... Account Info: `);
-	console.log(JSON.stringify(accountInfo, null, 2));
-
-	const contractHash = await utils.getAccountNamedKeyValue(
-		accountInfo,
-		`${WISETOKEN_CONTRACT_NAME!}_contract_hash`
-	);
-
-	console.log(`... Contract Hash: ${contractHash}`);
-
-	// We don't need hash- prefix so i'm removing it
-	//await wise.setContractHash(WISETOKEN_CONTRACT_HASH);
+	await wise.setContractHash(WISETOKEN_CONTRACT_HASH!);
 
 	const setLiquidityTransfomer = await wise.setLiquidityTransfomer(
 		KEYS,
@@ -154,6 +141,7 @@ const test = async () => {
 	console.log(
 		`... Contract getSyntheticTokenAddress: ${getSyntheticTokenAddress}`
 	);
+
 };
 
 //test();

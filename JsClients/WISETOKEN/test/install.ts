@@ -34,25 +34,25 @@ const test = async () => {
 		EVENT_STREAM_ADDRESS!
 	);
 	
-	// const installDeployHash = await wise.install(
-	// 	KEYS,
-	// 	WCSPR_ADDRESS!,
-	// 	SYNTHETIC_CSPR_ADDRESS!,
-	// 	PAIR_ADDRESS!,
-	// 	ROUTER_ADDRESS!,
-	// 	FACTORY_ADDRESS!,
-	// 	LIQUIDITY_GUARD_ADDRESS!,
-	// 	LAUNCH_TIME!,
-	// 	WISETOKEN_CONTRACT_NAME!,
-	// 	WISETOKEN_INSTALL_PAYMENT_AMOUNT!,
-	// 	WISETOKEN_WASM_PATH!
-	// );
+	const installDeployHash = await wise.install(
+		KEYS,
+		WCSPR_ADDRESS!,
+		SYNTHETIC_CSPR_ADDRESS!,
+		PAIR_ADDRESS!,
+		ROUTER_ADDRESS!,
+		FACTORY_ADDRESS!,
+		LIQUIDITY_GUARD_ADDRESS!,
+		LAUNCH_TIME!,
+		WISETOKEN_CONTRACT_NAME!,
+		WISETOKEN_INSTALL_PAYMENT_AMOUNT!,
+		WISETOKEN_WASM_PATH!
+	);
 
-	// console.log(`... Contract installation deployHash: ${installDeployHash}`);
+	console.log(`... Contract installation deployHash: ${installDeployHash}`);
 
-	// await getDeploy(NODE_ADDRESS!, installDeployHash);
+	await getDeploy(NODE_ADDRESS!, installDeployHash);
 
-	// console.log(`... Contract installed successfully.`);
+	console.log(`... Contract installed successfully.`);
 
 	let accountInfo = await utils.getAccountInfo(NODE_ADDRESS!, KEYS.publicKey);
 
