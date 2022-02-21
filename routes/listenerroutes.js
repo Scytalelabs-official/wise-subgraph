@@ -20,7 +20,7 @@ router.route("/startListener").post(async function (req, res, next) {
     }
 
     await axios
-      .post("https://localhost:3001/listener/initiateListener", {
+      .post("http://localhost:3001/listener/initiateListener", {
         contractPackageHashes: req.body.contractPackageHashes,
       })
       .then(function (response) {

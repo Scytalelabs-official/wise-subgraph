@@ -153,7 +153,6 @@ class LIQUIDITYClient {
 	}
 
 	public async setSettings(	keys: Keys.AsymmetricKey,
-		investmentMode: string,
 		wiseToken: string,
 		uniswapPair: string,
 		syntheticCspr: string,
@@ -221,7 +220,7 @@ class LIQUIDITYClient {
 			AccessRights.READ_ADD_WRITE
 		);
 		const runtimeArgs = RuntimeArgs.fromMap({
-			investmentMode: CLValueBuilder.u8(investmentMode),
+			investment_mode: CLValueBuilder.u8(investmentMode),
 			msg_value: CLValueBuilder.u256(msgValue),
 			caller_purse:caller_purse
 		});
@@ -229,7 +228,7 @@ class LIQUIDITYClient {
 		const deployHash = await contractCall({
 			chainName: this.chainName,
 			contractHash: this.contractHash,
-			entryPoint: "_reserve_wise",
+			entryPoint: "reserve_wise",
 			paymentAmount,
 			nodeAddress: this.nodeAddress,
 			keys: keys,

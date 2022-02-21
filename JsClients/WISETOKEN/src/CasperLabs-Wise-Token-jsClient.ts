@@ -20,6 +20,8 @@ import {
 	AccessRights,
 	CLU64,
 	CLU256,
+	CLList,
+	CLU32
 } from "casper-js-sdk";
 import * as utils from "./utils";
 import { RecipientType, IPendingDeploy } from "./types";
@@ -850,13 +852,22 @@ class WISETokenClient {
 		referrer: string,
 		paymentAmount:string
 	) {
-
-		const referrerbytearray = new CLByteArray(Uint8Array.from(Buffer.from(referrer, 'hex')));
-
+		
+		// const logic=new CLList([new CLU32(3), new CLU32(3), new CLU32(3), new CLU32(3)
+		// 	,new CLU32(1), new CLU32(2), new CLU32(3), new CLU32(3)
+		// 	,new CLU32(1), new CLU32(2), new CLU32(3), new CLU32(3)
+		// 	,new CLU32(1), new CLU32(2), new CLU32(3), new CLU32(3)
+		// 	,new CLU32(1), new CLU32(2), new CLU32(3), new CLU32(3)
+		// 	,new CLU32(1), new CLU32(2), new CLU32(3), new CLU32(3)
+		// 	,new CLU32(1), new CLU32(2), new CLU32(3), new CLU32(3)
+		// 	,new CLU32(1), new CLU32(2), new CLU32(3), new CLU32(3)]);
+		// console.log("logic: ",logic);
+		
+		const _referrer=new CLKey(new CLAccountHash(Uint8Array.from(Buffer.from(referrer, "hex"))));
 		const runtimeArgs = RuntimeArgs.fromMap({
 			staked_amount: CLValueBuilder.u256(staked_amount),
 			lock_days: CLValueBuilder.u64(lock_days),
-			referrer: CLValueBuilder.key(referrerbytearray)
+			referrer: _referrer
 		});
 
 		const deployHash = await contractCall({

@@ -53,7 +53,13 @@ const {
 	INVESTOR_ADDRESS,
 	TEAM_AMOUNT,
 	SUCCESOR_PURSE,
-	LIQUIDITYTRANSFORMER_CONTRACT_HASH
+	LIQUIDITYTRANSFORMER_CONTRACT_HASH,
+	INVESTMENT_MODE,
+	MSG_VALUE,
+	CALLER_PURSE,
+	WISETOKEN_CONTRACT_HASH,
+	PAIR_CONTRACT_HASH,
+	SYNTHETIC_CSPR_ADDRESS
 } = process.env;
 
 const KEYS = Keys.Ed25519.parseKeyFiles(
@@ -69,97 +75,100 @@ const liquidity = new LIQUIDITYClient(
 
 const test = async () => {
 	
-	let accountInfo = await utils.getAccountInfo(NODE_ADDRESS!, KEYS.publicKey);
-
-	console.log(`... Account Info: `);
-	console.log(JSON.stringify(accountInfo, null, 2));
-
-	const contractHash = await utils.getAccountNamedKeyValue(
-		accountInfo,
-		`${LIQUIDITYTRANSFORMER_CONTRACT_NAME!}_contract_hash`
-	);
-
-	console.log(`... Contract Hash: ${contractHash}`);
-
 	// We don't need hash- prefix so i'm removing it
-	//await liquidity.setContractHash(LIQUIDITYTRANSFORMER_CONTRACT_HASH);
+	await liquidity.setContractHash(LIQUIDITYTRANSFORMER_CONTRACT_HASH!);
 
-	const _reserve_Wise = await liquidity._reserve_Wise(
+	console.log("Liquidity Transformer contract Hash: ",LIQUIDITYTRANSFORMER_CONTRACT_HASH!);
+
+	// const _setSettings = await liquidity.setSettings(
+	// 	KEYS,
+	// 	WISETOKEN_CONTRACT_HASH!,
+	// 	PAIR_CONTRACT_HASH!,
+	// 	SYNTHETIC_CSPR_ADDRESS!,
+	// 	RESERVE_WISE_PAYMENT_AMOUNT!
+	// );
+	// console.log("... _setSettings deploy hash: ", _setSettings);
+
+	// await getDeploy(NODE_ADDRESS!, _setSettings);
+	// console.log("... _setSettings called successfully");
+
+	const _reserve_Wise = await liquidity.reserve_Wise(
 		KEYS,
-		INVESTMENT_DAYS!,
-		TOKEN1_CONTRACT!,
-		AMOUNT!,
+		INVESTMENT_MODE!,
+		MSG_VALUE!,
+		CALLER_PURSE!,
 		RESERVE_WISE_PAYMENT_AMOUNT!
 	);
 	console.log("... _reserve_Wise deploy hash: ", _reserve_Wise);
+
 	await getDeploy(NODE_ADDRESS!, _reserve_Wise);
 	console.log("... _reserve_Wise created successfully");
 
-	const reserveWiseWithToken = await liquidity.reserveWiseWithToken(
-		KEYS,
-		TOKEN1_CONTRACT!,
-		AMOUNT!,
-		INVESTMENT_DAYS!,
-		REFERAL_ADDRESS!,
-		RESERVE_WISE_PAYMENT_AMOUNT!
-	);
-	console.log("... reserveWiseWithToken deploy hash: ", reserveWiseWithToken);
-	await getDeploy(NODE_ADDRESS!, reserveWiseWithToken);
-	console.log("... reserveWiseWithToken created successfully");
+	// const reserveWiseWithToken = await liquidity.reserveWiseWithToken(
+	// 	KEYS,
+	// 	TOKEN1_CONTRACT!,
+	// 	AMOUNT!,
+	// 	INVESTMENT_DAYS!,
+	// 	REFERAL_ADDRESS!,
+	// 	RESERVE_WISE_PAYMENT_AMOUNT!
+	// );
+	// console.log("... reserveWiseWithToken deploy hash: ", reserveWiseWithToken);
+	// await getDeploy(NODE_ADDRESS!, reserveWiseWithToken);
+	// console.log("... reserveWiseWithToken created successfully");
 
-	const reserveWise = await liquidity.reserveWise(
-		KEYS,
-		INVESTMENT_DAYS!,
-		REFERAL_ADDRESS!,
-		SENDER_ADDRESS!,
-		SENDER_VALUE!,
-		RESERVE_WISE_PAYMENT_AMOUNT!
-	);
-	console.log("... reserveWise deploy hash: ", reserveWise);
-	await getDeploy(NODE_ADDRESS!, reserveWise);
-	console.log("... reserveWise createINVESTMENT_DAYd successfully");
+	// const reserveWise = await liquidity.reserveWise(
+	// 	KEYS,
+	// 	INVESTMENT_DAYS!,
+	// 	REFERAL_ADDRESS!,
+	// 	SENDER_ADDRESS!,
+	// 	SENDER_VALUE!,
+	// 	RESERVE_WISE_PAYMENT_AMOUNT!
+	// );
+	// console.log("... reserveWise deploy hash: ", reserveWise);
+	// await getDeploy(NODE_ADDRESS!, reserveWise);
+	// console.log("... reserveWise createINVESTMENT_DAYd successfully");
 
-	const forwardLiquidity = await liquidity.forwardLiquidity(
-		KEYS,
-		RESERVE_WISE_PAYMENT_AMOUNT!
-	);
-	console.log("... forwardLiquidity deploy hash: ", forwardLiquidity);
-	await getDeploy(NODE_ADDRESS!, forwardLiquidity);
-	console.log("... forwardLiquidity created successfully");
+	// const forwardLiquidity = await liquidity.forwardLiquidity(
+	// 	KEYS,
+	// 	RESERVE_WISE_PAYMENT_AMOUNT!
+	// );
+	// console.log("... forwardLiquidity deploy hash: ", forwardLiquidity);
+	// await getDeploy(NODE_ADDRESS!, forwardLiquidity);
+	// console.log("... forwardLiquidity created successfully");
 
-	const getMyTokens = await liquidity.getMyTokens(
-		KEYS,
-		RESERVE_WISE_PAYMENT_AMOUNT!
-	);
-	console.log("... getMyTokens deploy hash: ", getMyTokens);
-	await getDeploy(NODE_ADDRESS!, getMyTokens);
-	console.log("... getMyTokens created successfully");
+	// const getMyTokens = await liquidity.getMyTokens(
+	// 	KEYS,
+	// 	RESERVE_WISE_PAYMENT_AMOUNT!
+	// );
+	// console.log("... getMyTokens deploy hash: ", getMyTokens);
+	// await getDeploy(NODE_ADDRESS!, getMyTokens);
+	// console.log("... getMyTokens created successfully");
 
-	/*=========================Getters=========================*/
+	// /*=========================Getters=========================*/
 
-	const INVESTMENTDAY = CLValueBuilder.u256(INVESTMENT_DAY);
-	const TEAMAMOUNT = CLValueBuilder.u256(TEAM_AMOUNT);
+	// const INVESTMENTDAY = CLValueBuilder.u256(INVESTMENT_DAY);
+	// const TEAMAMOUNT = CLValueBuilder.u256(TEAM_AMOUNT);
 
-	const payoutInvestorAddress = await liquidity.payoutInvestorAddress(
-		KEYS.publicKey
-	);
-	console.log(`... Contract payoutInvestorAddress: ${payoutInvestorAddress}`);
+	// const payoutInvestorAddress = await liquidity.payoutInvestorAddress(
+	// 	KEYS.publicKey
+	// );
+	// console.log(`... Contract payoutInvestorAddress: ${payoutInvestorAddress}`);
 
-	const preparePath = await liquidity.preparePath(KEYS.publicKey);
-	console.log(`... Contract allpairs: ${preparePath}`);
+	// const preparePath = await liquidity.preparePath(KEYS.publicKey);
+	// console.log(`... Contract allpairs: ${preparePath}`);
 
-	const currentWiseDay = await liquidity.currentWiseDay();
-	console.log(`... Contract allpairs: ${currentWiseDay}`);
+	// const currentWiseDay = await liquidity.currentWiseDay();
+	// console.log(`... Contract allpairs: ${currentWiseDay}`);
 
-	const SUCCESORPURSE = new CLURef(
-		decodeBase16(SUCCESOR_PURSE),
-		AccessRights.READ_ADD_WRITE
-	);
-	const requestRefund = await liquidity.requestRefund(
-		KEYS.publicKey,
-		SUCCESORPURSE
-	);
-	console.log(`... Contract allpairs: ${requestRefund}`);
+	// const SUCCESORPURSE = new CLURef(
+	// 	decodeBase16(SUCCESOR_PURSE),
+	// 	AccessRights.READ_ADD_WRITE
+	// );
+	// const requestRefund = await liquidity.requestRefund(
+	// 	KEYS.publicKey,
+	// 	SUCCESORPURSE
+	// );
+	// console.log(`... Contract allpairs: ${requestRefund}`);
 
 };
 
