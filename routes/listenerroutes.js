@@ -85,7 +85,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
     console.log("... Block hash: ", block_hash);
     console.log("Event Data: ", newData);
 
-    if (eventName == "RefundIssued") {
+    if (eventName == "refundIssued") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
       console.log(newData[1][0].data + " = " + newData[1][1].data);
@@ -123,7 +123,49 @@ router.route("/geteventsdata").post(async function (req, res, next) {
         .catch(function (error) {
           console.log(error);
         });
-    } else if (eventName == "GiveStatus") {
+    } else if (eventName == "cashBackIssued") {
+      console.log(eventName + " Event result: ");
+      console.log(newData[0][0].data + " = " + newData[0][1].data);
+      console.log(newData[1][0].data + " = " + newData[1][1].data);
+      console.log(newData[2][0].data + " = " + newData[2][1].data);
+      console.log(newData[3][0].data + " = " + newData[3][1].data);
+      console.log(newData[4][0].data + " = " + newData[4][1].data);
+
+      var cashBackedTo = splitdata(newData[2][1].data);
+      var senderValue = newData[3][1].data;
+      var cashBackAmount = newData[4][1].data;
+
+      console.log("cashBackedTo: ", cashBackedTo);
+      console.log("senderValue: ", senderValue);
+      console.log("cashBackAmount: ", cashBackAmount);
+
+      console.log("Calling handleCashBackIssued mutation...");
+      request(
+        process.env.GRAPHQL,
+        `mutation handleCashBackIssued( $cashBackedTo: String!, $senderValue: String!,$cashBackAmount: String!, $deployHash: String!){
+                handleCashBackIssued( cashBackedTo: $cashBackedTo, senderValue: $senderValue, cashBackAmount: $cashBackAmount, deployHash: $deployHash) {
+                  result
+              }
+                        
+              }`,
+        {
+          cashBackedTo: cashBackedTo,
+          senderValue: senderValue,
+          cashBackAmount: cashBackAmount,
+          deployHash: deployHash,
+        }
+      )
+        .then(function (response) {
+          console.log(response);
+          return res.status(200).json({
+            success: true,
+            message: "handleCashBackIssued Mutation called.",
+          });
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    } else if (eventName == "give_status") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
       console.log(newData[1][0].data + " = " + newData[1][1].data);
@@ -156,7 +198,67 @@ router.route("/geteventsdata").post(async function (req, res, next) {
         .catch(function (error) {
           console.log(error);
         });
-    } else if (eventName == "StakeStart") {
+    } else if (eventName == "uniswapSwapResult") {
+      console.log(eventName + " Event result: ");
+      console.log(newData[0][0].data + " = " + newData[0][1].data);
+      console.log(newData[1][0].data + " = " + newData[1][1].data);
+      console.log(newData[2][0].data + " = " + newData[2][1].data);
+      console.log(newData[3][0].data + " = " + newData[3][1].data);
+      console.log(newData[4][0].data + " = " + newData[4][1].data);
+
+      var amountTokenA = newData[2][1].data;
+      var amountTokenB = newData[3][1].data;
+      var liquidity = newData[4][1].data;
+
+      console.log("amountTokenA: ", amountTokenA);
+      console.log("amountTokenB: ", amountTokenB);
+      console.log("liquidity: ", liquidity);
+    } else if (eventName == "uniswap_reserves") {
+      console.log(eventName + " Event result: ");
+      console.log(newData[0][0].data + " = " + newData[0][1].data);
+      console.log(newData[1][0].data + " = " + newData[1][1].data);
+      console.log(newData[2][0].data + " = " + newData[2][1].data);
+      console.log(newData[3][0].data + " = " + newData[3][1].data);
+      console.log(newData[4][0].data + " = " + newData[4][1].data);
+
+      var reserveA = newData[2][1].data;
+      var reserveB = newData[3][1].data;
+      var blockTimeStampLast = newData[4][1].data;
+
+      console.log("reserveA: ", reserveA);
+      console.log("reserveB: ", reserveB);
+      console.log("blockTimeStampLast: ", blockTimeStampLast);
+    } else if (eventName == "liquidity_guard_status") {
+      console.log(eventName + " Event result: ");
+      console.log(newData[0][0].data + " = " + newData[0][1].data);
+      console.log(newData[1][0].data + " = " + newData[1][1].data);
+      console.log(newData[2][0].data + " = " + newData[2][1].data);
+
+      var liquidityGuardStatus = newData[2][1].data;
+
+      console.log("liquidityGuardStatus: ", liquidityGuardStatus);
+    } else if (eventName == "referral_collected") {
+      console.log(eventName + " Event result: ");
+      console.log(newData[0][0].data + " = " + newData[0][1].data);
+      console.log(newData[1][0].data + " = " + newData[1][1].data);
+      console.log(newData[2][0].data + " = " + newData[2][1].data);
+      console.log(newData[3][0].data + " = " + newData[3][1].data);
+      console.log(newData[4][0].data + " = " + newData[4][1].data);
+      console.log(newData[5][0].data + " = " + newData[5][1].data);
+      console.log(newData[6][0].data + " = " + newData[6][1].data);
+
+      var staker = splitdata(newData[2][1].data);
+      var stakerId = newData[3][1].data;
+      var referrer = splitdata(newData[4][1].data);
+      var referrerId = newData[5][1].data;
+      var rewardAmount = newData[6][1].data;
+
+      console.log("staker: ", staker);
+      console.log("stakerId: ", stakerId);
+      console.log("referrer: ", referrer);
+      console.log("referrerId: ", referrerId);
+      console.log("rewardAmount: ", rewardAmount);
+    } else if (eventName == "stake_start") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
       console.log(newData[1][0].data + " = " + newData[1][1].data);
@@ -241,7 +343,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
         .catch(function (error) {
           console.log(error);
         });
-    } else if (eventName == "StakeEnd") {
+    } else if (eventName == "stake_end") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
       console.log(newData[1][0].data + " = " + newData[1][1].data);
@@ -301,7 +403,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
         .catch(function (error) {
           console.log(error);
         });
-    } else if (eventName == "InterestScraped") {
+    } else if (eventName == "interest_scraped") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
       console.log(newData[1][0].data + " = " + newData[1][1].data);
@@ -368,7 +470,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
         .catch(function (error) {
           console.log(error);
         });
-    } else if (eventName == "NewGlobals") {
+    } else if (eventName == "new_globals") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
       console.log(newData[1][0].data + " = " + newData[1][1].data);
@@ -438,7 +540,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
         .catch(function (error) {
           console.log(error);
         });
-    } else if (eventName == "NewSharePrice") {
+    } else if (eventName == "new_share_price") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
       console.log(newData[1][0].data + " = " + newData[1][1].data);
@@ -542,7 +644,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
         .catch(function (error) {
           console.log(error);
         });
-    } else if (eventName == "WiseReservation") {
+    } else if (eventName == "wiseReservation") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
       console.log(newData[1][0].data + " = " + newData[1][1].data);
@@ -604,80 +706,111 @@ router.route("/geteventsdata").post(async function (req, res, next) {
         .catch(function (error) {
           console.log(error);
         });
-    } else if (eventName == "generated_static_supply") {
+    } else if (eventName == "depositedLiquidity") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
       console.log(newData[1][0].data + " = " + newData[1][1].data);
       console.log(newData[2][0].data + " = " + newData[2][1].data);
       console.log(newData[3][0].data + " = " + newData[3][1].data);
 
-      var investmentDay = newData[2][1].data;
-      var staticSupply = newData[3][1].data;
+      var depositAmount = newData[2][1].data;
+      var transformerAddress = splitdata(newData[3][1].data);
 
-      console.log("investmentDay: ", investmentDay);
-      console.log("staticSupply: ", staticSupply);
-
-      console.log("Calling handleGeneratedStaticSupply mutation...");
-      request(
-        process.env.GRAPHQL,
-        `mutation handleGeneratedStaticSupply( $investmentDay: String!, $staticSupply: String!){
-            handleGeneratedStaticSupply( investmentDay: $investmentDay, staticSupply: $staticSupply) {
-                    result
-                }
-                          
-                }`,
-        {
-          investmentDay: investmentDay,
-          staticSupply: staticSupply,
-        }
-      )
-        .then(function (response) {
-          console.log(response);
-          return res.status(200).json({
-            success: true,
-            message: "handleGeneratedStaticSupply  Mutation called.",
-          });
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
-    } else if (eventName == "generated_random_supply") {
+      console.log("depositAmount: ", depositAmount);
+      console.log("transformerAddress: ", transformerAddress);
+    } else if (eventName == "withdrawal") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
       console.log(newData[1][0].data + " = " + newData[1][1].data);
       console.log(newData[2][0].data + " = " + newData[2][1].data);
       console.log(newData[3][0].data + " = " + newData[3][1].data);
 
-      var investmentDay = newData[2][1].data;
-      var randomSupply = newData[3][1].data;
+      var fromAddress = splitdata(newData[2][1].data);
+      var tokenAmount = newData[3][1].data;
 
-      console.log("investmentDay: ", investmentDay);
-      console.log("randomSupply: ", randomSupply);
+      console.log("fromAddress: ", fromAddress);
+      console.log("tokenAmount: ", tokenAmount);
+    } else if (eventName == "formedLiquidityv") {
+      console.log(eventName + " Event result: ");
+      console.log(newData[0][0].data + " = " + newData[0][1].data);
+      console.log(newData[1][0].data + " = " + newData[1][1].data);
+      console.log(newData[2][0].data + " = " + newData[2][1].data);
+      console.log(newData[3][0].data + " = " + newData[3][1].data);
+      console.log(newData[4][0].data + " = " + newData[4][1].data);
+      console.log(newData[5][0].data + " = " + newData[5][1].data);
 
-      console.log("Calling handleGeneratedRandomSupply mutation...");
-      request(
-        process.env.GRAPHQL,
-        `mutation handleGeneratedRandomSupply( $investmentDay: String!, $randomSupply: String!){
-            handleGeneratedRandomSupply(investmentDay: $investmentDay, randomSupply: $randomSupply) {
-                    result
-                }
-                          
-                }`,
-        {
-          investmentDay: investmentDay,
-          randomSupply: randomSupply,
-        }
-      )
-        .then(function (response) {
-          console.log(response);
-          return res.status(200).json({
-            success: true,
-            message: "handleGeneratedRandomSupply  Mutation called.",
-          });
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+      var coverAmount = newData[2][1].data;
+      var amountTokenA = newData[3][1].data;
+      var amountTokenB = newData[4][1].data;
+      var liquidity = newData[5][1].data;
+
+      console.log("coverAmount: ", coverAmount);
+      console.log("amountTokenA: ", amountTokenA);
+      console.log("amountTokenB: ", amountTokenB);
+      console.log("liquidity: ", liquidity);
+    } else if (eventName == "LiquidityRemoved") {
+      console.log(eventName + " Event result: ");
+      console.log(newData[0][0].data + " = " + newData[0][1].data);
+      console.log(newData[1][0].data + " = " + newData[1][1].data);
+      console.log(newData[2][0].data + " = " + newData[2][1].data);
+      console.log(newData[3][0].data + " = " + newData[3][1].data);
+
+      var amountWcspr = newData[2][1].data;
+      var amountScspr = newData[3][1].data;
+
+      console.log("amountWcspr: ", amountWcspr);
+      console.log("amountScspr: ", amountScspr);
+    } else if (eventName == "SendFeesToMaster") {
+      console.log(eventName + " Event result: ");
+      console.log(newData[0][0].data + " = " + newData[0][1].data);
+      console.log(newData[1][0].data + " = " + newData[1][1].data);
+      console.log(newData[2][0].data + " = " + newData[2][1].data);
+      console.log(newData[3][0].data + " = " + newData[3][1].data);
+
+      var amountWcspr = newData[2][1].data;
+      var masterAddress = splitdata(newData[3][1].data);
+
+      console.log("amountWcspr: ", amountWcspr);
+      console.log("masterAddress: ", masterAddress);
+    } else if (eventName == "LiquidityAdded") {
+      console.log(eventName + " Event result: ");
+      console.log(newData[0][0].data + " = " + newData[0][1].data);
+      console.log(newData[1][0].data + " = " + newData[1][1].data);
+      console.log(newData[2][0].data + " = " + newData[2][1].data);
+      console.log(newData[3][0].data + " = " + newData[3][1].data);
+      console.log(newData[4][0].data + " = " + newData[4][1].data);
+
+      var amountWcspr = newData[2][1].data;
+      var amountScspr = newData[3][1].data;
+      var liquidity = newData[4][1].data;
+
+      console.log("amountWcspr: ", amountWcspr);
+      console.log("amountScspr: ", amountScspr);
+      console.log("liquidity: ", liquidity);
+    } else if (eventName == "MasterProfit") {
+      console.log(eventName + " Event result: ");
+      console.log(newData[0][0].data + " = " + newData[0][1].data);
+      console.log(newData[1][0].data + " = " + newData[1][1].data);
+      console.log(newData[2][0].data + " = " + newData[2][1].data);
+      console.log(newData[3][0].data + " = " + newData[3][1].data);
+
+      var amountWcspr = newData[2][1].data;
+      var masterAddress = splitdata(newData[3][1].data);
+
+      console.log("amountWcspr: ", amountWcspr);
+      console.log("masterAddress: ", masterAddress);
+    } else if (eventName == "SendArbitrageProfitToMaster") {
+      console.log(eventName + " Event result: ");
+      console.log(newData[0][0].data + " = " + newData[0][1].data);
+      console.log(newData[1][0].data + " = " + newData[1][1].data);
+      console.log(newData[2][0].data + " = " + newData[2][1].data);
+      console.log(newData[3][0].data + " = " + newData[3][1].data);
+
+      var amountWcspr = newData[2][1].data;
+      var masterAddress = splitdata(newData[3][1].data);
+
+      console.log("amountWcspr: ", amountWcspr);
+      console.log("masterAddress: ", masterAddress);
     }
   } catch (error) {
     console.log("error (try-catch) : " + error);
