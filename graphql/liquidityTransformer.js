@@ -409,21 +409,22 @@ const handleWiseReservation = {
     }
   },
 };
-const handleGeneratedStaticSupply = {
+
+const handleRefundIssued = {
   type: responseType,
-  description: "Handle Generated Static Supply",
+  description: "Handle Refund Issued",
   args: {
-    investmentDay: { type: GraphQLString },
-    staticSupply: { type: GraphQLString },
+    refundedTo: { type: GraphQLString },
+    amount: { type: GraphQLString },
+    deployHash: { type: GraphQLString },
   },
   async resolve(parent, args, context) {
     try {
-      let newData = new GlobalReservationDay({
-        id: args.investmentDay,
-        supply: args.staticSupply,
-      });
-      await GlobalReservationDay.create(newData);
-
+      let userID = args.refundedTo;
+      let user = await createUser(userID);
+      user.gasRefunded = args.amount;
+      user.refundTransaction = args.deployHash;
+      await user.save();
       let response = await Response.findOne({ id: "1" });
       if (response === null) {
         // create new response
@@ -440,21 +441,23 @@ const handleGeneratedStaticSupply = {
   },
 };
 
-const handleGeneratedRandomSupply = {
+const handleCashBackIssued = {
   type: responseType,
-  description: "Handle Generated Random Supply",
+  description: "Handle CashBackIssued",
   args: {
-    investmentDay: { type: GraphQLString },
-    randomSupply: { type: GraphQLString },
+    cashBackedTo: { type: GraphQLString },
+    senderValue: { type: GraphQLString },
+    cashBackAmount: { type: GraphQLString },
+    deployHash: { type: GraphQLString },
   },
   async resolve(parent, args, context) {
     try {
-      let newData = new GlobalReservationDay({
-        id: args.investmentDay,
-        supply: args.randomSupply,
-      });
-      await GlobalReservationDay.create(newData);
-
+      let userID = args.cashBackedTo;
+      let user = await createUser(userID);
+      user.cashBackAmount = args.cashBackAmount;
+      user.senderValue = args.senderValue;
+      user.cashBackTransaction = args.deployHash;
+      await user.save();
       let response = await Response.findOne({ id: "1" });
       if (response === null) {
         // create new response
@@ -470,9 +473,10 @@ const handleGeneratedRandomSupply = {
     }
   },
 };
+
 module.exports = {
   handleReferralAdded,
   handleWiseReservation,
-  handleGeneratedStaticSupply,
-  handleGeneratedRandomSupply,
+  handleRefundIssued,
+  handleCashBackIssued,
 };

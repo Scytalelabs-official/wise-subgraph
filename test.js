@@ -20,6 +20,31 @@ async function RefundIssued(refundedTo, amount, deployHash) {
   console.log(response);
 }
 
+async function CashBackIssued(
+  cashBackedTo,
+  senderValue,
+  cashBackAmount,
+  deployHash
+) {
+  console.log("Calling handleCashBackIssued mutation...");
+  let response = await request(
+    process.env.GRAPHQL,
+    `mutation handleCashBackIssued( $cashBackedTo: String!, $senderValue: String!,$cashBackAmount: String!, $deployHash: String!){
+            handleCashBackIssued( cashBackedTo: $cashBackedTo, senderValue: $ senderValue, cashBackAmount: $ cashBackAmount, deployHash: $deployHash) {
+              result
+          }
+                    
+          }`,
+    {
+      cashBackedTo: cashBackedTo,
+      senderValue: senderValue,
+      cashBackAmount: cashBackAmount,
+      deployHash: deployHash,
+    }
+  );
+  console.log(response);
+}
+
 async function GiveStatus(referrerId) {
   console.log("Calling handleGiveStatus mutation...");
   let response = await request(
@@ -305,43 +330,9 @@ async function WiseReservation(
   console.log(response);
 }
 
-async function GeneratedStaticSupply(investmentDay, staticSupply) {
-  console.log("Calling handleGeneratedStaticSupply mutation...");
-  let response = await request(
-    process.env.GRAPHQL,
-    `mutation handleGeneratedStaticSupply( $investmentDay: String!, $staticSupply: String!){
-      handleGeneratedStaticSupply( investmentDay: $investmentDay, staticSupply: $staticSupply) {
-              result
-          }
-                    
-          }`,
-    {
-      investmentDay: investmentDay,
-      staticSupply: staticSupply,
-    }
-  );
-  console.log(response);
-}
-
-async function GeneratedRandomSupply(investmentDay, randomSupply) {
-  console.log("Calling handleGeneratedRandomSupply mutation...");
-  let response = await request(
-    process.env.GRAPHQL,
-    `mutation handleGeneratedRandomSupply( $investmentDay: String!, $randomSupply: String!){
-      handleGeneratedRandomSupply(investmentDay: $investmentDay, randomSupply: $randomSupply) {
-              result
-          }
-                    
-          }`,
-    {
-      investmentDay: investmentDay,
-      randomSupply: randomSupply,
-    }
-  );
-  console.log(response);
-}
 async function startTests() {
   await RefundIssued("123", "10000000000", "123");
+  await CashBackIssued("123", "10000000000","10000000000", "123");
   await GiveStatus("123");
   await StakeStart(
     "123",
@@ -381,8 +372,6 @@ async function startTests() {
     "10000000000"
   );
   await ReferralAdded("123", "123", "123", "123", "123", "123", "10000000000");
-  await GeneratedStaticSupply("15000000000", "10000000000");
-  await GeneratedRandomSupply("15000000000", "10000000000");
 }
 
 startTests();

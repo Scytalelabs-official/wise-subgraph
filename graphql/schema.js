@@ -6,7 +6,7 @@ const { responses, response, user, global } = require("./queries");
 
 // Import mutations
 const { handleNewResponse } = require("./mutations");
-const { handleRefundIssued, handleCashBackIssued } = require("./refundSponsor");
+
 const {
   handleGiveStatus,
   handleStakeStart,
@@ -19,8 +19,8 @@ const {
 const {
   handleReferralAdded,
   handleWiseReservation,
-  handleGeneratedStaticSupply,
-  handleGeneratedRandomSupply,
+  handleRefundIssued,
+  handleCashBackIssued,
 } = require("./liquidityTransformer");
 
 // Define QueryType
@@ -41,8 +41,6 @@ const MutationType = new GraphQLObjectType({
   description: "Mutations",
   fields: {
     handleNewResponse,
-    handleRefundIssued,
-    handleCashBackIssued,
     handleGiveStatus,
     handleStakeStart,
     handleStakeEnd,
@@ -51,8 +49,8 @@ const MutationType = new GraphQLObjectType({
     handleNewSharePrice,
     handleReferralAdded,
     handleWiseReservation,
-    handleGeneratedStaticSupply,
-    handleGeneratedRandomSupply,
+    handleRefundIssued,
+    handleCashBackIssued,
   },
 });
 
