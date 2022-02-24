@@ -157,8 +157,8 @@ const test = async () => {
 	// const preparePath = await liquidity.preparePath(KEYS.publicKey);
 	// console.log(`... Contract allpairs: ${preparePath}`);
 
-	// const currentWiseDay = await liquidity.currentWiseDay();
-	// console.log(`... Contract allpairs: ${currentWiseDay}`);
+	//const currentWiseDay = await liquidity.currentWiseDay();
+	//console.log(`... currentWiseDay : ${currentWiseDay}`);
 
 	// const SUCCESORPURSE = new CLURef(
 	// 	decodeBase16(SUCCESOR_PURSE),

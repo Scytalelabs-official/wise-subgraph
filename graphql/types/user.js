@@ -9,7 +9,7 @@ const userType = new GraphQLObjectType({
   name: "user",
   description: "user type",
   fields: () => ({
-    _id: {type: GraphQLID },
+    _id: { type: GraphQLID },
     id: {
       type: GraphQLString,
     },
@@ -64,10 +64,16 @@ const userType = new GraphQLObjectType({
     refundTransaction: {
       type: GraphQLString,
     },
-
-  })
+    cashBackAmount: {
+      type: GraphQLString,
+    },
+    senderValue: {
+      type: GraphQLString,
+    },
+    cashBackTransaction: {
+      type: GraphQLString,
+    },
+  }),
 });
 
 module.exports = { userType };
-
-

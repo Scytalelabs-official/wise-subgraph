@@ -56,6 +56,15 @@ const userSchema = new Schema({
   refundTransaction: {
     type: String,
   },
+  cashBackAmount: {
+    type: String,
+  },
+  senderValue: {
+    type: String,
+  },
+  cashBackTransaction: {
+    type: String,
+  },
 });
 
 var user = mongoose.model("user", userSchema);
