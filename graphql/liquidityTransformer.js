@@ -445,14 +445,19 @@ const handleCashBackIssued = {
   type: responseType,
   description: "Handle CashBackIssued",
   args: {
-    cashBackedTo: { type: GraphQLString },
+    totalCashBack: { type: GraphQLString },
+    senderAddress: { type: GraphQLString },
     senderValue: { type: GraphQLString },
     cashBackAmount: { type: GraphQLString },
     deployHash: { type: GraphQLString },
   },
   async resolve(parent, args, context) {
     try {
-      let userID = args.cashBackedTo;
+      let global = await getOrCreateGlobal();
+      global.totalCashBack = args.totalCashBack;
+      await global.save();
+
+      let userID = args.senderAddress;
       let user = await createUser(userID);
       user.cashBackAmount = args.cashBackAmount;
       user.senderValue = args.senderValue;

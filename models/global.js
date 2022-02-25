@@ -68,6 +68,9 @@ const globalSchema = new Schema({
   ownedSupply: {
     type: String,
   },
+  totalCashBack: {
+    type: String,
+  },
 });
 
 var global = mongoose.model("global", globalSchema);

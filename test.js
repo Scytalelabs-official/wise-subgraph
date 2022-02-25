@@ -21,7 +21,8 @@ async function RefundIssued(refundedTo, amount, deployHash) {
 }
 
 async function CashBackIssued(
-  cashBackedTo,
+  totalCashBack,
+  senderAddress,
   senderValue,
   cashBackAmount,
   deployHash
@@ -29,14 +30,15 @@ async function CashBackIssued(
   console.log("Calling handleCashBackIssued mutation...");
   let response = await request(
     process.env.GRAPHQL,
-    `mutation handleCashBackIssued( $cashBackedTo: String!, $senderValue: String!,$cashBackAmount: String!, $deployHash: String!){
-            handleCashBackIssued( cashBackedTo: $cashBackedTo, senderValue: $ senderValue, cashBackAmount: $ cashBackAmount, deployHash: $deployHash) {
+    `mutation handleCashBackIssued( $totalCashBack:String!,$senderAddress: String!, $senderValue: String!,$cashBackAmount: String!, $deployHash: String!){
+            handleCashBackIssued( totalCashBack:$totalCashBack, senderAddress: $senderAddress, senderValue: $ senderValue, cashBackAmount: $ cashBackAmount, deployHash: $deployHash) {
               result
           }
                     
           }`,
     {
-      cashBackedTo: cashBackedTo,
+      totalCashBack:totalCashBack,
+      senderAddress: senderAddress,
       senderValue: senderValue,
       cashBackAmount: cashBackAmount,
       deployHash: deployHash,
@@ -332,7 +334,7 @@ async function WiseReservation(
 
 async function startTests() {
   await RefundIssued("123", "10000000000", "123");
-  await CashBackIssued("123", "10000000000","10000000000", "123");
+  await CashBackIssued("100000000000000000","123", "10000000000","10000000000", "123");
   await GiveStatus("123");
   await StakeStart(
     "123",

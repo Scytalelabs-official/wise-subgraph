@@ -76,6 +76,9 @@ const globalType = new GraphQLObjectType({
     ownedSupply: {
       type: GraphQLString,
     },
+    totalCashBack: {
+      type: GraphQLString,
+    },
   }),
 });
 

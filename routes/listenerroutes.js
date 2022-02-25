@@ -130,26 +130,30 @@ router.route("/geteventsdata").post(async function (req, res, next) {
       console.log(newData[2][0].data + " = " + newData[2][1].data);
       console.log(newData[3][0].data + " = " + newData[3][1].data);
       console.log(newData[4][0].data + " = " + newData[4][1].data);
+      console.log(newData[5][0].data + " = " + newData[5][1].data);
 
-      var cashBackedTo = splitdata(newData[2][1].data);
-      var senderValue = newData[3][1].data;
-      var cashBackAmount = newData[4][1].data;
+      var totalCashBack = newData[2][1].data;
+      var senderAddress = splitdata(newData[3][1].data);
+      var senderValue = newData[4][1].data;
+      var cashBackAmount = newData[5][1].data;
 
-      console.log("cashBackedTo: ", cashBackedTo);
+      console.log("totalCashBack: ", totalCashBack);
+      console.log("senderAddress: ", senderAddress);
       console.log("senderValue: ", senderValue);
       console.log("cashBackAmount: ", cashBackAmount);
 
       console.log("Calling handleCashBackIssued mutation...");
       request(
         process.env.GRAPHQL,
-        `mutation handleCashBackIssued( $cashBackedTo: String!, $senderValue: String!,$cashBackAmount: String!, $deployHash: String!){
-                handleCashBackIssued( cashBackedTo: $cashBackedTo, senderValue: $senderValue, cashBackAmount: $cashBackAmount, deployHash: $deployHash) {
+        `mutation handleCashBackIssued( $totalCashBack:String!, $senderAddress: String!, $senderValue: String!,$cashBackAmount: String!, $deployHash: String!){
+                handleCashBackIssued( totalCashBack:$totalCashBack, senderAddress: $senderAddress, senderValue: $senderValue, cashBackAmount: $cashBackAmount, deployHash: $deployHash) {
                   result
               }
                         
               }`,
         {
-          cashBackedTo: cashBackedTo,
+          totalCashBack: totalCashBack,
+          senderAddress: senderAddress,
           senderValue: senderValue,
           cashBackAmount: cashBackAmount,
           deployHash: deployHash,
