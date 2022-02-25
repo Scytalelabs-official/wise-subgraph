@@ -21,6 +21,7 @@ const {
   handleWiseReservation,
   handleRefundIssued,
   handleCashBackIssued,
+  handleUniswapSwapedResult,
 } = require("./liquidityTransformer");
 
 // Define QueryType
@@ -51,6 +52,7 @@ const MutationType = new GraphQLObjectType({
     handleWiseReservation,
     handleRefundIssued,
     handleCashBackIssued,
+    handleUniswapSwapedResult,
   },
 });
 

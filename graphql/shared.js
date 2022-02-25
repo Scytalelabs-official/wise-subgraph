@@ -35,7 +35,8 @@ async function getOrCreateGlobal() {
       liquidSupply: ZERO,
       mintedSupply: ZERO,
       ownedSupply: ZERO,
-      totalCashBack: ZERO
+      totalCashBack: ZERO,
+      uniswapSwaped: false
     });
     global = await Global.create(newData);
   }

@@ -79,6 +79,9 @@ const globalType = new GraphQLObjectType({
     totalCashBack: {
       type: GraphQLString,
     },
+    uniswapSwaped: {
+      type: GraphQLBoolean,
+    },
   }),
 });
 

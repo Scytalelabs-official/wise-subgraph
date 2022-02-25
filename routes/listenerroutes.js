@@ -217,6 +217,33 @@ router.route("/geteventsdata").post(async function (req, res, next) {
       console.log("amountTokenA: ", amountTokenA);
       console.log("amountTokenB: ", amountTokenB);
       console.log("liquidity: ", liquidity);
+
+      console.log("Calling handleUniswapSwapedResult mutation...");
+      let response = await request(
+        process.env.GRAPHQL,
+        `mutation handleUniswapSwapedResult( $amountTokenA:String!,$ amountTokenB: String!, $liquidity: String!,$deployHash: String!){
+            handleUniswapSwapedResult( amountTokenA:$amountTokenA,  amountTokenB: $ amountTokenB, liquidity: $ liquidity, deployHash: $deployHash) {
+              result
+          }
+                    
+          }`,
+        {
+          amountTokenA: amountTokenA,
+          amountTokenB: amountTokenB,
+          liquidity: liquidity,
+          deployHash: deployHash,
+        }
+      )
+        .then(function (response) {
+          console.log(response);
+          return res.status(200).json({
+            success: true,
+            message: "handleUniswapSwapedResult  Mutation called.",
+          });
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
     } else if (eventName == "uniswap_reserves") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);

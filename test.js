@@ -37,10 +37,35 @@ async function CashBackIssued(
                     
           }`,
     {
-      totalCashBack:totalCashBack,
+      totalCashBack: totalCashBack,
       senderAddress: senderAddress,
       senderValue: senderValue,
       cashBackAmount: cashBackAmount,
+      deployHash: deployHash,
+    }
+  );
+  console.log(response);
+}
+
+async function UniswapSwapedResult(
+  amountTokenA,
+  amountTokenB,
+  liquidity,
+  deployHash
+) {
+  console.log("Calling handleUniswapSwapedResult mutation...");
+  let response = await request(
+    process.env.GRAPHQL,
+    `mutation handleUniswapSwapedResult( $amountTokenA:String!,$ amountTokenB: String!, $liquidity: String!,$deployHash: String!){
+            handleUniswapSwapedResult( amountTokenA:$amountTokenA,  amountTokenB: $ amountTokenB, liquidity: $ liquidity, deployHash: $deployHash) {
+              result
+          }
+                    
+          }`,
+    {
+      amountTokenA: amountTokenA,
+      amountTokenB: amountTokenB,
+      liquidity: liquidity,
       deployHash: deployHash,
     }
   );
@@ -334,7 +359,19 @@ async function WiseReservation(
 
 async function startTests() {
   await RefundIssued("123", "10000000000", "123");
-  await CashBackIssued("100000000000000000","123", "10000000000","10000000000", "123");
+  await CashBackIssued(
+    "100000000000000000",
+    "123",
+    "10000000000",
+    "10000000000",
+    "123"
+  );
+  await UniswapSwapedResult(
+    "10000000000",
+    "1000000000",
+    "1000000000000",
+    "123",
+  );
   await GiveStatus("123");
   await StakeStart(
     "123",

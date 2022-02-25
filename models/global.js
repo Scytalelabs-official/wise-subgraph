@@ -71,6 +71,9 @@ const globalSchema = new Schema({
   totalCashBack: {
     type: String,
   },
+  uniswapSwaped: {
+    type: Boolean,
+  },
 });
 
 var global = mongoose.model("global", globalSchema);

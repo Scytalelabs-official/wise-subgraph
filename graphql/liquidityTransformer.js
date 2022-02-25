@@ -1,3 +1,4 @@
+require("dotenv").config();
 const {
   getOrCreateGlobal,
   createUser,
@@ -14,7 +15,7 @@ const GlobalReservationDay = require("../models/globalReservationDay");
 const GlobalReservationDaySnapshot = require("../models/globalReservationDaySnapshot");
 const ReservationReferral = require("../models/reservationReferral");
 const Transaction = require("../models/transaction");
-
+const UniswapSwapResult = require("../models/uniswapSwapResult");
 const Response = require("../models/response");
 const { responseType } = require("./types/response");
 
@@ -479,9 +480,58 @@ const handleCashBackIssued = {
   },
 };
 
+const handleUniswapSwapedResult = {
+  type: responseType,
+  description: "Handle UniswapSwapedResult",
+  args: {
+    amountTokenA: { type: GraphQLString },
+    amountTokenB: { type: GraphQLString },
+    liquidity: { type: GraphQLString },
+    deployHash: { type: GraphQLString },
+  },
+  async resolve(parent, args, context) {
+    try {
+      let global = await getOrCreateGlobal();
+      global.uniswapSwaped = true;
+      await global.save();
+
+      let newData = new UniswapSwapResult({
+        id:
+          process.env.WISETOKEN_CONTRACT_HASH +
+          " - " +
+          process.env.LIQUIDITYTRANSFORMER_CONTRACT_HASH +
+          " - " +
+          process.env.PAIR_CONTRACT_HASH,
+        tokenA: process.env.WISETOKEN_CONTRACT_HASH,
+        tokenB: process.env.LIQUIDITYTRANSFORMER_CONTRACT_HASH,
+        amountTokenA: args.amountTokenA,
+        amountTokenB: args.amountTokenB,
+        liquidity: args.liquidity,
+        pair: process.env.PAIR_CONTRACT_HASH,
+        to: "hash-0000000000000000000000000000000000000000000000000000000000000000",
+      });
+
+      await UniswapSwapResult.create(newData);
+      let response = await Response.findOne({ id: "1" });
+      if (response === null) {
+        // create new response
+        response = new Response({
+          id: "1",
+          result: true,
+        });
+        await response.save();
+      }
+      return response;
+    } catch (error) {
+      throw new Error(error);
+    }
+  },
+};
+
 module.exports = {
   handleReferralAdded,
   handleWiseReservation,
   handleRefundIssued,
   handleCashBackIssued,
+  handleUniswapSwapedResult,
 };
