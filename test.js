@@ -72,6 +72,50 @@ async function UniswapSwapedResult(
   console.log(response);
 }
 
+async function UniswapReserves(reserveA, reserveB, blockTimestampLast) {
+  console.log("Calling handleUniswapReserves mutation...");
+  let response = await request(
+    process.env.GRAPHQL,
+    `mutation handleUniswapReserves( $reserveA:String!,$ reserveB: String!, $blockTimestampLast: String!){
+            handleUniswapReserves( reserveA:$reserveA,  reserveB: $ reserveB, blockTimestampLast: $ blockTimestampLast) {
+              result
+          }
+                    
+          }`,
+    {
+      reserveA: reserveA,
+      reserveB: reserveB,
+      blockTimestampLast: blockTimestampLast,
+    }
+  );
+  console.log(response);
+}
+
+async function LiquidityGuardStatus(liquidityGuardStatusString) {
+  let liquidityGuardStatus=false;
+  if(liquidityGuardStatusString == "true")
+  {
+    liquidityGuardStatus=true
+  }
+  else
+  {
+    liquidityGuardStatus=false;
+  }
+  console.log("Calling handleLiquidityGuardStatus mutation...");
+  let response = await request(
+    process.env.GRAPHQL,
+    `mutation handleLiquidityGuardStatus( $liquidityGuardStatus:Boolean!){
+            handleLiquidityGuardStatus( liquidityGuardStatus:$liquidityGuardStatus) {
+              result
+          }
+                    
+          }`,
+    {
+      liquidityGuardStatus: liquidityGuardStatus,
+    }
+  );
+  console.log(response);
+}
 async function GiveStatus(referrerId) {
   console.log("Calling handleGiveStatus mutation...");
   let response = await request(
@@ -370,7 +414,15 @@ async function startTests() {
     "10000000000",
     "1000000000",
     "1000000000000",
-    "123",
+    "123"
+  );
+  await UniswapReserves(
+    "10000000000",
+    "1000000000",
+    "1000000000000"
+  );
+  await LiquidityGuardStatus(
+    "true"
   );
   await GiveStatus("123");
   await StakeStart(

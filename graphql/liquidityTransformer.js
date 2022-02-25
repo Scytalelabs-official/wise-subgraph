@@ -499,11 +499,11 @@ const handleUniswapSwapedResult = {
         id:
           process.env.WISETOKEN_CONTRACT_HASH +
           " - " +
-          process.env.LIQUIDITYTRANSFORMER_CONTRACT_HASH +
+          process.env.SYNTHETIC_CSPR_ADDRESS +
           " - " +
           process.env.PAIR_CONTRACT_HASH,
         tokenA: process.env.WISETOKEN_CONTRACT_HASH,
-        tokenB: process.env.LIQUIDITYTRANSFORMER_CONTRACT_HASH,
+        tokenB: process.env.SYNTHETIC_CSPR_ADDRESS,
         amountTokenA: args.amountTokenA,
         amountTokenB: args.amountTokenB,
         liquidity: args.liquidity,

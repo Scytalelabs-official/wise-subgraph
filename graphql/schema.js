@@ -14,6 +14,8 @@ const {
   handleInterestScraped,
   handleNewGlobals,
   handleNewSharePrice,
+  handleUniswapReserves,
+  handleLiquidityGuardStatus
 } = require("./wiseToken");
 
 const {
@@ -53,6 +55,8 @@ const MutationType = new GraphQLObjectType({
     handleRefundIssued,
     handleCashBackIssued,
     handleUniswapSwapedResult,
+    handleUniswapReserves,
+    handleLiquidityGuardStatus
   },
 });
 

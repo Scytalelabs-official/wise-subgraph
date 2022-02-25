@@ -254,20 +254,76 @@ router.route("/geteventsdata").post(async function (req, res, next) {
 
       var reserveA = newData[2][1].data;
       var reserveB = newData[3][1].data;
-      var blockTimeStampLast = newData[4][1].data;
+      var blockTimestampLast = newData[4][1].data;
 
       console.log("reserveA: ", reserveA);
       console.log("reserveB: ", reserveB);
-      console.log("blockTimeStampLast: ", blockTimeStampLast);
+      console.log("blockTimestampLast: ", blockTimestampLast);
+
+      console.log("Calling handleUniswapReserves mutation...");
+      let response = await request(
+        process.env.GRAPHQL,
+        `mutation handleUniswapReserves( $reserveA:String!,$ reserveB: String!, $blockTimestampLast: String!){
+            handleUniswapReserves( reserveA:$reserveA,  reserveB: $ reserveB, blockTimestampLast: $ blockTimestampLast) {
+              result
+          }
+                    
+          }`,
+        {
+          reserveA: reserveA,
+          reserveB: reserveB,
+          blockTimestampLast: blockTimestampLast,
+        }
+      )
+        .then(function (response) {
+          console.log(response);
+          return res.status(200).json({
+            success: true,
+            message: "handleUniswapReserves  Mutation called.",
+          });
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
     } else if (eventName == "liquidity_guard_status") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
       console.log(newData[1][0].data + " = " + newData[1][1].data);
       console.log(newData[2][0].data + " = " + newData[2][1].data);
 
-      var liquidityGuardStatus = newData[2][1].data;
+      var liquidityGuardStatusString = newData[2][1].data;
 
-      console.log("liquidityGuardStatus: ", liquidityGuardStatus);
+      console.log("liquidityGuardStatusString: ", liquidityGuardStatusString);
+
+      let liquidityGuardStatus = false;
+      if (liquidityGuardStatusString == "true") {
+        liquidityGuardStatus = true;
+      } else {
+        liquidityGuardStatus = false;
+      }
+      console.log("Calling handleLiquidityGuardStatus mutation...");
+      let response = await request(
+        process.env.GRAPHQL,
+        `mutation handleLiquidityGuardStatus( $liquidityGuardStatus:Boolean!){
+            handleLiquidityGuardStatus( liquidityGuardStatus:$liquidityGuardStatus) {
+              result
+          }
+                    
+          }`,
+        {
+          liquidityGuardStatus: liquidityGuardStatus,
+        }
+      )
+        .then(function (response) {
+          console.log(response);
+          return res.status(200).json({
+            success: true,
+            message: "handleLiquidityGuardStatus  Mutation called.",
+          });
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
     } else if (eventName == "referral_collected") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);

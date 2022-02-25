@@ -1,12 +1,16 @@
+require("dotenv").config();
 const { getOrCreateGlobal, createUser, ZERO, ONE } = require("./shared");
-const { GraphQLString } = require("graphql");
+const { GraphQLString, GraphQLBoolean } = require("graphql");
 //var WiseTokenContract = require("../JsClients/WiseToken/test/installed.ts");
 
 const Stake = require("../models/stake");
 const User = require("../models/user");
+const UniswapReserves = require("../models/uniswapReserves");
+const LiquidityGuardStatus = require("../models/liquidityGuardStatus");
 
 const Response = require("../models/response");
 const { responseType } = require("./types/response");
+const { findOne } = require("../models/user");
 
 const handleGiveStatus = {
   type: responseType,
@@ -301,6 +305,100 @@ const handleNewSharePrice = {
   },
 };
 
+const handleUniswapReserves = {
+  type: responseType,
+  description: "Handle Uniswap Reserves",
+  args: {
+    reserveA: { type: GraphQLString },
+    reserveB: { type: GraphQLString },
+    blockTimestampLast: { type: GraphQLString },
+  },
+  async resolve(parent, args, context) {
+    try {
+      let uniswapReservesResult = await UniswapReserves.findOne({
+        id:
+          process.env.WISETOKEN_CONTRACT_HASH +
+          " - " +
+          process.env.SYNTHETIC_CSPR_ADDRESS +
+          " - " +
+          process.env.PAIR_CONTRACT_HASH,
+      });
+      if (uniswapReservesResult == null) {
+        let newData = new UniswapReserves({
+          id:
+            process.env.WISETOKEN_CONTRACT_HASH +
+            " - " +
+            process.env.SYNTHETIC_CSPR_ADDRESS +
+            " - " +
+            process.env.PAIR_CONTRACT_HASH,
+          reserveA: args.reserveA,
+          reserveB: args.reserveB,
+          blockTimestampLast: args.blockTimestampLast,
+          tokenA: process.env.WISETOKEN_CONTRACT_HASH,
+          tokenB: process.env.SYNTHETIC_CSPR_ADDRESS,
+          pair: process.env.PAIR_CONTRACT_HASH,
+        });
+        await UniswapReserves.create(newData);
+      } else {
+        uniswapReservesResult.reserveA = args.reserveA;
+        uniswapReservesResult.reserveB = args.reserveB;
+        uniswapReservesResult.blockTimestampLast = args.blockTimestampLast;
+        await uniswapReservesResult.save();
+      }
+      let response = await Response.findOne({ id: "1" });
+      if (response === null) {
+        // create new response
+        response = new Response({
+          id: "1",
+          result: true,
+        });
+        await response.save();
+      }
+      return response;
+    } catch (error) {
+      throw new Error(error);
+    }
+  },
+};
+
+const handleLiquidityGuardStatus = {
+  type: responseType,
+  description: "Handle LiquidityGuardStatus",
+  args: {
+    liquidityGuardStatus: { type: GraphQLBoolean },
+  },
+  async resolve(parent, args, context) {
+    try {
+      let liquidityGuardStatusResult = await LiquidityGuardStatus.findOne({
+        id: "0",
+      });
+      if (liquidityGuardStatusResult == null) {
+        let newData = new LiquidityGuardStatus({
+          id: "0",
+          liquidityGuardStatus: args.liquidityGuardStatus,
+        });
+        await LiquidityGuardStatus.create(newData);
+      } else {
+        liquidityGuardStatusResult.liquidityGuardStatus =
+          args.liquidityGuardStatus;
+        await liquidityGuardStatusResult.save();
+      }
+      let response = await Response.findOne({ id: "1" });
+      if (response === null) {
+        // create new response
+        response = new Response({
+          id: "1",
+          result: true,
+        });
+        await response.save();
+      }
+      return response;
+    } catch (error) {
+      throw new Error(error);
+    }
+  },
+};
+
 module.exports = {
   handleGiveStatus,
   handleStakeStart,
@@ -308,4 +406,6 @@ module.exports = {
   handleInterestScraped,
   handleNewGlobals,
   handleNewSharePrice,
+  handleUniswapReserves,
+  handleLiquidityGuardStatus,
 };
