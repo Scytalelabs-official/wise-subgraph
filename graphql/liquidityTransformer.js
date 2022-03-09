@@ -16,7 +16,13 @@ const GlobalReservationDaySnapshot = require("../models/globalReservationDaySnap
 const ReservationReferral = require("../models/reservationReferral");
 const Transaction = require("../models/transaction");
 const UniswapSwapResult = require("../models/uniswapSwapResult");
+const DepositedLiquidity = require("../models/depositedLiquidity");
+const Withdrawal = require("../models/withdrawal");
+const ScsprLiquidity = require("../models/scsprLiquidity");
+const FormedLiquidity = require("../models/formedLiquidity");
+const MasterRecord = require("../models/MasterRecord");
 const Response = require("../models/response");
+
 const { responseType } = require("./types/response");
 
 let CM_REFERRER_THRESHOLD = csprVal(50);
@@ -528,10 +534,343 @@ const handleUniswapSwapedResult = {
   },
 };
 
+const handleDepositedLiquidity = {
+  type: responseType,
+  description: "Handle DepositedLiquidity",
+  args: {
+    user: { type: GraphQLString },
+    amount: { type: GraphQLString },
+    deployHash: { type: GraphQLString },
+  },
+  async resolve(parent, args, context) {
+    try {
+      let newData = new DepositedLiquidity({
+        user: args.user,
+        amount: args.amount,
+        deployhash: args.deployHash,
+      });
+
+      await DepositedLiquidity.create(newData);
+
+      let scsprliquidityresult = await ScsprLiquidity.findOne({
+        user: args.user,
+      });
+      if (scsprliquidityresult == null) {
+        let newData = new ScsprLiquidity({
+          user: args.user,
+          amount: args.amount,
+        });
+
+        await ScsprLiquidity.create(newData);
+      } else {
+        scsprliquidityresult.amount = (
+          BigInt(scsprliquidityresult.amount) + BigInt(args.amount)
+        ).toString();
+        await scsprliquidityresult.save();
+      }
+      let response = await Response.findOne({ id: "1" });
+      if (response === null) {
+        // create new response
+        response = new Response({
+          id: "1",
+          result: true,
+        });
+        await response.save();
+      }
+      return response;
+    } catch (error) {
+      throw new Error(error);
+    }
+  },
+};
+
+const handleWithdrawal = {
+  type: responseType,
+  description: "Handle Withdrawal",
+  args: {
+    user: { type: GraphQLString },
+    amount: { type: GraphQLString },
+    deployHash: { type: GraphQLString },
+  },
+  async resolve(parent, args, context) {
+    try {
+      let newData = new Withdrawal({
+        user: args.user,
+        amount: args.amount,
+        deployhash: args.deployHash,
+      });
+
+      await Withdrawal.create(newData);
+
+      let scsprliquidityresult = await ScsprLiquidity.findOne({
+        user: args.user,
+      });
+      if (scsprliquidityresult == null) {
+        let response = await Response.findOne({ id: "1" });
+        if (response === null) {
+          // create new response
+          response = new Response({
+            id: "1",
+            result: false,
+          });
+          await response.save();
+        }
+        return response;
+      } else {
+        scsprliquidityresult.amount = (
+          BigInt(scsprliquidityresult.amount) - BigInt(args.amount)
+        ).toString();
+        await scsprliquidityresult.save();
+      }
+      let response = await Response.findOne({ id: "1" });
+      if (response === null) {
+        // create new response
+        response = new Response({
+          id: "1",
+          result: true,
+        });
+        await response.save();
+      }
+      return response;
+    } catch (error) {
+      throw new Error(error);
+    }
+  },
+};
+
+const handleFormedLiquidity = {
+  type: responseType,
+  description: "Handle FormedLiquidity",
+  args: {
+    coverAmount: { type: GraphQLString },
+    amountTokenA: { type: GraphQLString },
+    amountTokenB: { type: GraphQLString },
+    liquidity: { type: GraphQLString },
+    deployHash: { type: GraphQLString },
+  },
+  async resolve(parent, args, context) {
+    try {
+      let formedliquidityresult = await FormedLiquidity.findOne({
+        id:
+          process.env.WISETOKEN_CONTRACT_HASH +
+          " - " +
+          process.env.ERC20_CONTRACT_HASH +
+          " - " +
+          process.env.PAIR_CONTRACT_HASH,
+      });
+      if (formedliquidityresult == null) {
+        let newData = new FormedLiquidity({
+          id:
+            process.env.WISETOKEN_CONTRACT_HASH +
+            " - " +
+            process.env.ERC20_CONTRACT_HASH +
+            " - " +
+            process.env.PAIR_CONTRACT_HASH,
+          tokenA: process.env.WISETOKEN_CONTRACT_HASH,
+          tokenB: process.env.ERC20_CONTRACT_HASH,
+          amountTokenA: args.amountTokenA,
+          amountTokenB: args.amountTokenB,
+          liquidity: args.liquidity,
+          pair: process.env.PAIR_CONTRACT_HASH,
+          to: process.env.ERC20_CONTRACT_HASH,
+          coverAmount: args.coverAmount,
+        });
+
+        await FormedLiquidity.create(newData);
+      } else {
+        formedliquidityresult.liquidity = args.liquidity;
+        formedliquidityresult.coverAmount = args.coverAmount;
+        formedliquidityresult.amountTokenA = (
+          BigInt(formedliquidityresult.amountTokenA) + BigInt(args.amountTokenA)
+        ).toString();
+        formedliquidityresult.amountTokenB = (
+          BigInt(formedliquidityresult.amountTokenB) + BigInt(args.amountTokenB)
+        ).toString();
+
+        await formedliquidityresult.save();
+      }
+
+      let response = await Response.findOne({ id: "1" });
+      if (response === null) {
+        // create new response
+        response = new Response({
+          id: "1",
+          result: true,
+        });
+        await response.save();
+      }
+      return response;
+    } catch (error) {
+      throw new Error(error);
+    }
+  },
+};
+
+const handleLiquidityAdded = {
+  type: responseType,
+  description: "Handle LiquidityAdded",
+  args: {
+    amountWcspr: { type: GraphQLString },
+    amountScspr: { type: GraphQLString },
+    liquidity: { type: GraphQLString },
+  },
+  async resolve(parent, args, context) {
+    try {
+      let uniswapswapresult = await UniswapSwapResult.findOne({
+        id:
+          process.env.WISETOKEN_CONTRACT_HASH +
+          " - " +
+          process.env.SYNTHETIC_CSPR_ADDRESS +
+          " - " +
+          process.env.PAIR_CONTRACT_HASH,
+      });
+      if (uniswapswapresult == null) {
+        let newData = new UniswapSwapResult({
+          id:
+            process.env.WISETOKEN_CONTRACT_HASH +
+            " - " +
+            process.env.SYNTHETIC_CSPR_ADDRESS +
+            " - " +
+            process.env.PAIR_CONTRACT_HASH,
+          tokenA: process.env.WISETOKEN_CONTRACT_HASH,
+          tokenB: process.env.SYNTHETIC_CSPR_ADDRESS,
+          amountTokenA: args.amountWcspr,
+          amountTokenB: args.amountScspr,
+          liquidity: args.liquidity,
+          pair: process.env.PAIR_CONTRACT_HASH,
+          to: "hash-0000000000000000000000000000000000000000000000000000000000000000",
+        });
+
+        await UniswapSwapResult.create(newData);
+      } else {
+        uniswapswapresult.liquidity = args.liquidity;
+        uniswapswapresult.amountWcspr = (
+          BigInt(uniswapswapresult.amountWcspr) + BigInt(args.amountWcspr)
+        ).toString();
+        uniswapswapresult.amountScspr = (
+          BigInt(uniswapswapresult.amountScspr) + BigInt(args.amountScspr)
+        ).toString();
+
+        await uniswapswapresult.save();
+      }
+
+      let response = await Response.findOne({ id: "1" });
+      if (response === null) {
+        // create new response
+        response = new Response({
+          id: "1",
+          result: true,
+        });
+        await response.save();
+      }
+      return response;
+    } catch (error) {
+      throw new Error(error);
+    }
+  },
+};
+
+const handleLiquidityRemoved = {
+  type: responseType,
+  description: "Handle LiquidityRemoved",
+  args: {
+    amountWcspr: { type: GraphQLString },
+    amountScspr: { type: GraphQLString },
+  },
+  async resolve(parent, args, context) {
+    try {
+      let uniswapswapresult = await UniswapSwapResult.findOne({
+        id:
+          process.env.WISETOKEN_CONTRACT_HASH +
+          " - " +
+          process.env.SYNTHETIC_CSPR_ADDRESS +
+          " - " +
+          process.env.PAIR_CONTRACT_HASH,
+      });
+
+      if (uniswapswapresult == null) {
+        let response = await Response.findOne({ id: "1" });
+        if (response === null) {
+          // create new response
+          response = new Response({
+            id: "1",
+            result: false,
+          });
+          await response.save();
+        }
+        return response;
+      } else {
+        uniswapswapresult.liquidity = args.liquidity;
+        uniswapswapresult.amountWcspr = (
+          BigInt(uniswapswapresult.amountWcspr) - BigInt(args.amountWcspr)
+        ).toString();
+        uniswapswapresult.amountScspr = (
+          BigInt(uniswapswapresult.amountScspr) - BigInt(args.amountScspr)
+        ).toString();
+
+        await uniswapswapresult.save();
+      }
+
+      let response = await Response.findOne({ id: "1" });
+      if (response === null) {
+        // create new response
+        response = new Response({
+          id: "1",
+          result: true,
+        });
+        await response.save();
+      }
+      return response;
+    } catch (error) {
+      throw new Error(error);
+    }
+  },
+};
+
+const handleMasterRecord = {
+  type: responseType,
+  description: "Handle MasterRecord",
+  args: {
+    masterAddress: { type: GraphQLString },
+    amount: { type: GraphQLString },
+    source: { type: GraphQLString },
+  },
+  async resolve(parent, args, context) {
+    try {
+      let newData = new MasterRecord({
+        id: args.masterAddress,
+        amount: args.amount,
+        source: args.source,
+      });
+
+      await MasterRecord.create(newData);
+
+      let response = await Response.findOne({ id: "1" });
+      if (response === null) {
+        // create new response
+        response = new Response({
+          id: "1",
+          result: true,
+        });
+        await response.save();
+      }
+      return response;
+    } catch (error) {
+      throw new Error(error);
+    }
+  },
+};
+
 module.exports = {
   handleReferralAdded,
   handleWiseReservation,
   handleRefundIssued,
   handleCashBackIssued,
   handleUniswapSwapedResult,
+  handleDepositedLiquidity,
+  handleWithdrawal,
+  handleFormedLiquidity,
+  handleLiquidityAdded,
+  handleLiquidityRemoved,
+  handleMasterRecord
 };
