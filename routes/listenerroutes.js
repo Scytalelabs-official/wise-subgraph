@@ -345,6 +345,11 @@ router.route("/geteventsdata").post(async function (req, res, next) {
       console.log("referrer: ", referrer);
       console.log("referrerId: ", referrerId);
       console.log("rewardAmount: ", rewardAmount);
+
+      return res.status(200).json({
+        success: true,
+        message: "handleReferralCollected  Mutation don't exists.",
+      });
     } else if (eventName == "stake_start") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
