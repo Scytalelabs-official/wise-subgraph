@@ -267,8 +267,10 @@ const handleWiseReservation = {
     blockHash: { type: GraphQLString },
     timestamp: { type: GraphQLString },
     from: { type: GraphQLString },
-    investmentDay: { type: GraphQLString },
     amount: { type: GraphQLString },
+    tokens: { type: GraphQLString },
+    currentWiseDay: { type: GraphQLString },
+    investmentMode: { type: GraphQLString },
   },
   async resolve(parent, args, context) {
     try {
@@ -276,6 +278,7 @@ const handleWiseReservation = {
       global.reservationCount = (
         BigInt(global.reservationCount) + BigInt(ONE)
       ).toString();
+      global.currentWiseDay = args.currentWiseDay;
 
       let transaction = await upsertTransaction(
         args.deployHash,
@@ -296,16 +299,18 @@ const handleWiseReservation = {
         ).toString();
       }
 
-      let reservationID = args.deployHash + "-" + args.investmentDay;
+      let reservationID = args.deployHash + "-" + args.investmentMode;
       let reservation = new Reservation({
         id: reservationID,
         transaction: transaction.id,
         timestamp: transaction.timestamp,
         user: user.id,
-        investmentDay: args.investmentDay,
+        investmentMode: args.investmentMode,
         effectiveWei: args.amount,
         actualWei: args.amount,
-        referral: null,
+        scsprContributed: args.amount,
+        transferTokens: args.amount,
+        currentWiseDay: args.currentWiseDay,
       });
       await Reservation.create(reservation);
 
@@ -318,6 +323,14 @@ const handleWiseReservation = {
       user.reservationActualWei = (
         BigInt(user.reservationActualWei) + BigInt(reservation.effectiveWei)
       ).toString();
+
+      user.scsprContributed = (
+        BigInt(user.scsprContributed) + BigInt(args.amount)
+      ).toString();
+      user.transferTokens = (
+        BigInt(user.transferTokens) + BigInt(args.tokens)
+      ).toString();
+
       global.reservationEffectiveWei = (
         BigInt(global.reservationEffectiveWei) +
         BigInt(reservation.effectiveWei)
@@ -325,81 +338,89 @@ const handleWiseReservation = {
       global.reservationActualWei = (
         BigInt(global.reservationActualWei) + BigInt(reservation.effectiveWei)
       ).toString();
+
+      global.totalScsprContributed = (
+        BigInt(global.totalScsprContributed) + BigInt(args.amount)
+      ).toString();
+      global.totalTransferTokens = (
+        BigInt(global.totalTransferTokens) + BigInt(args.tokens)
+      ).toString();
+
       await global.save();
-
-      let gResDayID = reservation.investmentDay;
-      let gResDay = await GlobalReservationDay.findOne({ id: gResDayID });
-      if (gResDay == null) {
-        gResDay = new GlobalReservationDay({
-          id: gResDayID,
-          investmentDay: reservation.investmentDay,
-          minSupply: getMinSupply(BigInt(reservation.investmentDay)).toString(),
-          maxSupply: (
-            MAX_SUPPLY - getMinSupply(BigInt(reservation.investmentDay))
-          ).toString(),
-          effectiveWei: ZERO,
-          actualWei: ZERO,
-          reservationCount: ZERO,
-          userCount: ZERO,
-        });
-        await GlobalReservationDay.create(gResDay);
-      }
-      gResDay.effectiveWei = (
-        BigInt(gResDay.effectiveWei) + BigInt(reservation.effectiveWei)
-      ).toString();
-      gResDay.actualWei = (
-        BigInt(gResDay.actualWei) + BigInt(reservation.effectiveWei)
-      ).toString();
-      gResDay.reservationCount = (
-        BigInt(gResDay.reservationCount) + BigInt(ONE)
-      ).toString();
-
-      let gResDaySnapshotID = reservation.investmentDay + "-" + args.timestamp;
-      let gResDaySnapshot = new GlobalReservationDaySnapshot({
-        id: gResDaySnapshotID,
-        timestamp: args.timestamp,
-        investmentDay: gResDay.investmentDay,
-        effectiveWei: gResDay.effectiveWei,
-        actualWei: gResDay.actualWei,
-        reservationCount: gResDay.reservationCount,
-      });
-      await GlobalReservationDaySnapshot.create(gResDaySnapshot);
-
-      let uResDayID = userID + "-" + reservation.investmentDay;
-      let uResDay = await UserReservationDay.findOne({ id: uResDayID });
-      if (uResDay == null) {
-        uResDay = new UserReservationDay({
-          id: uResDayID,
-          user: user.id,
-          investmentDay: reservation.investmentDay,
-          effectiveWei: ZERO,
-          actualWei: ZERO,
-          reservationCount: ZERO,
-        });
-        await UserReservationDay.create(uResDay);
-        gResDay.userCount = (
-          BigInt(gResDay.userCount) + BigInt(ONE)
-        ).toString();
-        user.reservationDayCount = (
-          BigInt(user.reservationDayCount) + BigInt(ONE)
-        ).toString();
-      }
-      uResDay.effectiveWei = (
-        BigInt(uResDay.effectiveWei) + BigInt(reservation.effectiveWei)
-      ).toString();
-      uResDay.actualWei = (
-        BigInt(uResDay.actualWei) + BigInt(reservation.effectiveWei)
-      ).toString();
-      uResDay.reservationCount = (
-        BigInt(uResDay.reservationCount) + BigInt(ONE)
-      ).toString();
-
-      await uResDay.save();
-      await gResDay.save();
       await user.save();
 
-      gResDaySnapshot.userCount = gResDay.userCount;
-      await gResDaySnapshot.save();
+      // let gResDayID = reservation.investmentDay;
+      // let gResDay = await GlobalReservationDay.findOne({ id: gResDayID });
+      // if (gResDay == null) {
+      //   gResDay = new GlobalReservationDay({
+      //     id: gResDayID,
+      //     investmentDay: reservation.investmentDay,
+      //     minSupply: getMinSupply(BigInt(reservation.investmentDay)).toString(),
+      //     maxSupply: (
+      //       MAX_SUPPLY - getMinSupply(BigInt(reservation.investmentDay))
+      //     ).toString(),
+      //     effectiveWei: ZERO,
+      //     actualWei: ZERO,
+      //     reservationCount: ZERO,
+      //     userCount: ZERO,
+      //   });
+      //   await GlobalReservationDay.create(gResDay);
+      // }
+      // gResDay.effectiveWei = (
+      //   BigInt(gResDay.effectiveWei) + BigInt(reservation.effectiveWei)
+      // ).toString();
+      // gResDay.actualWei = (
+      //   BigInt(gResDay.actualWei) + BigInt(reservation.effectiveWei)
+      // ).toString();
+      // gResDay.reservationCount = (
+      //   BigInt(gResDay.reservationCount) + BigInt(ONE)
+      // ).toString();
+
+      // let gResDaySnapshotID = reservation.investmentDay + "-" + args.timestamp;
+      // let gResDaySnapshot = new GlobalReservationDaySnapshot({
+      //   id: gResDaySnapshotID,
+      //   timestamp: args.timestamp,
+      //   investmentDay: gResDay.investmentDay,
+      //   effectiveWei: gResDay.effectiveWei,
+      //   actualWei: gResDay.actualWei,
+      //   reservationCount: gResDay.reservationCount,
+      // });
+      // await GlobalReservationDaySnapshot.create(gResDaySnapshot);
+
+      // let uResDayID = userID + "-" + reservation.investmentDay;
+      // let uResDay = await UserReservationDay.findOne({ id: uResDayID });
+      // if (uResDay == null) {
+      //   uResDay = new UserReservationDay({
+      //     id: uResDayID,
+      //     user: user.id,
+      //     investmentDay: reservation.investmentDay,
+      //     effectiveWei: ZERO,
+      //     actualWei: ZERO,
+      //     reservationCount: ZERO,
+      //   });
+      //   await UserReservationDay.create(uResDay);
+      //   gResDay.userCount = (
+      //     BigInt(gResDay.userCount) + BigInt(ONE)
+      //   ).toString();
+      //   user.reservationDayCount = (
+      //     BigInt(user.reservationDayCount) + BigInt(ONE)
+      //   ).toString();
+      // }
+      // uResDay.effectiveWei = (
+      //   BigInt(uResDay.effectiveWei) + BigInt(reservation.effectiveWei)
+      // ).toString();
+      // uResDay.actualWei = (
+      //   BigInt(uResDay.actualWei) + BigInt(reservation.effectiveWei)
+      // ).toString();
+      // uResDay.reservationCount = (
+      //   BigInt(uResDay.reservationCount) + BigInt(ONE)
+      // ).toString();
+
+      // await uResDay.save();
+      // await gResDay.save();
+
+      // gResDaySnapshot.userCount = gResDay.userCount;
+      // await gResDaySnapshot.save();
 
       let response = await Response.findOne({ id: "1" });
       if (response === null) {

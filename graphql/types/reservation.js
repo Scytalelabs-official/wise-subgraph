@@ -34,6 +34,15 @@ const reservationType = new GraphQLObjectType({
     referral: {
       type: GraphQLString,
     },
+    scsprContributed: {
+      type: GraphQLString,
+    },
+    transferTokens: {
+      type: GraphQLString,
+    },
+    currentWiseDay: {
+      type: GraphQLString,
+    },
   }),
 });
 

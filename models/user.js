@@ -20,6 +20,12 @@ const userSchema = new Schema({
   reservationActualWei: {
     type: String,
   },
+  scsprContributed: {
+    type: String,
+  },
+  transferTokens: {
+    type: String,
+  },
   reservationCount: {
     type: String,
   },

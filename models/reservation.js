@@ -26,6 +26,15 @@ const reservationSchema = new Schema({
   referral: {
     type: String,
   },
+  scsprContributed: {
+    type: String,
+  },
+  transferTokens: {
+    type: String,
+  },
+  currentWiseDay: {
+    type: String,
+  },
 });
 
 var reservation = mongoose.model("reservation", reservationSchema);

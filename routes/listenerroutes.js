@@ -745,14 +745,15 @@ router.route("/geteventsdata").post(async function (req, res, next) {
       console.log(newData[4][0].data + " = " + newData[4][1].data);
 
       var from = splitdata(newData[2][1].data);
-      var investmentDay = newData[3][1].data;
-      var amount = newData[4][1].data;
+      var amount = newData[3][1].data;
+      var tokens = newData[4][1].data;
+
       var currentWiseDay = newData[5][1].data;
       var investmentMode = newData[6][1].data;
 
       console.log("from: ", from);
-      console.log("investmentDay: ", investmentDay);
       console.log("amount: ", amount);
+      console.log("tokens: ", tokens);
       console.log("currentWiseDay: ", currentWiseDay);
       console.log("investmentMode: ", investmentMode);
 
@@ -764,16 +765,20 @@ router.route("/geteventsdata").post(async function (req, res, next) {
             $blockHash:String!,
             $timestamp:String!,
             $from:String!,
-            $investmentDay:String!,
-            $amount:String!
+            $amount:String!,
+            $tokens:String!,,
+            $currentWiseDay:String!,,
+            $investmentMode:String!,
             ){
             handleWiseReservation( 
             deployHash:$deployHash,
             blockHash:$blockHash,
             timestamp:$timestamp,
             from:$from,
-            investmentDay:$investmentDay,
-            amount:$amount
+            amount:$amount,
+            tokens:$tokens,
+            currentWiseDay:$currentWiseDay,
+            investmentMode:$investmentMode,
             ) {
                     result
                 }
@@ -784,8 +789,10 @@ router.route("/geteventsdata").post(async function (req, res, next) {
           blockHash: block_hash,
           timestamp: timestamp,
           from: from,
-          investmentDay: investmentDay,
           amount: amount,
+          tokens: tokens,
+          currentWiseDay: currentWiseDay,
+          investmentMode: investmentMode,
         }
       )
         .then(function (response) {

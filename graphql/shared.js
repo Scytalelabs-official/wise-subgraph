@@ -36,7 +36,9 @@ async function getOrCreateGlobal() {
       mintedSupply: ZERO,
       ownedSupply: ZERO,
       totalCashBack: ZERO,
-      uniswapSwaped: false
+      uniswapSwaped: false,
+      totalScsprContributed: ZERO,
+      totalTransferTokens: ZERO,
     });
     global = await Global.create(newData);
   }
@@ -44,21 +46,28 @@ async function getOrCreateGlobal() {
 }
 
 async function createUser(id) {
-  let newData = new User({
-    id: id,
-    reservationEffectiveWei: ZERO,
-    reservationActualWei: ZERO,
-    reservationReferralActualWei: ZERO,
-    reservationCount: ZERO,
-    reservationDayCount: ZERO,
-    reservationReferralCount: ZERO,
-    stakeCount: ZERO,
-    cmStatus: false,
-    cmStatusInLaunch: false,
-    gasRefunded: ZERO,
-  });
-  let user = await User.create(newData);
-  return user;
+  let userresult= await User.findOne({id:id});
+  if(userresult==null)
+  {
+    let newData = new User({
+      id: id,
+      reservationEffectiveWei: ZERO,
+      reservationActualWei: ZERO,
+      reservationReferralActualWei: ZERO,
+      reservationCount: ZERO,
+      reservationDayCount: ZERO,
+      reservationReferralCount: ZERO,
+      scsprContributed: ZERO,
+      transferTokens: ZERO,
+      stakeCount: ZERO,
+      cmStatus: false,
+      cmStatusInLaunch: false,
+      gasRefunded: ZERO,
+    });
+    let user = await User.create(newData);
+    return user;
+  }
+  return userresult;
 }
 module.exports = {
   ZERO,

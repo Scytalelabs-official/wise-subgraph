@@ -29,6 +29,12 @@ const globalSchema = new Schema({
   reservationActualWei: {
     type: String,
   },
+  totalScsprContributed: {
+    type: String,
+  },
+  totalTransferTokens: {
+    type: String,
+  },
   stakeCount: {
     type: String,
   },

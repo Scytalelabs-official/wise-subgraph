@@ -43,6 +43,12 @@ const userType = new GraphQLObjectType({
     reservationReferralCount: {
       type: GraphQLString,
     },
+    scsprContributed: {
+      type: GraphQLString,
+    },
+    transferTokens: {
+      type: GraphQLString,
+    },
     stakes: {
       type: GraphQLString,
     },

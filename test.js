@@ -360,39 +360,47 @@ async function WiseReservation(
   blockHash,
   timestamp,
   from,
-  investmentDay,
-  amount
+  amount,
+  tokens,
+  currentWiseDay,
+  investmentMode
 ) {
   console.log("Calling handleWiseReservation mutation...");
   let response = await request(
     process.env.GRAPHQL,
     `mutation handleWiseReservation( 
-      $deployHash:String!,
-      $blockHash:String!,
-      $timestamp:String!,
-      $from:String!,
-      $investmentDay:String!,
-      $amount:String!
-      ){
-      handleWiseReservation( 
-      deployHash:$deployHash,
-      blockHash:$blockHash,
-      timestamp:$timestamp,
-      from:$from,
-      investmentDay:$investmentDay,
-      amount:$amount
-      ) {
-              result
-          }
-                    
-          }`,
+        $deployHash:String!,
+        $blockHash:String!,
+        $timestamp:String!,
+        $from:String!,
+        $amount:String!,
+        $tokens:String!,,
+        $currentWiseDay:String!,,
+        $investmentMode:String!,
+        ){
+        handleWiseReservation( 
+        deployHash:$deployHash,
+        blockHash:$blockHash,
+        timestamp:$timestamp,
+        from:$from,
+        amount:$amount,
+        tokens:$tokens,
+        currentWiseDay:$currentWiseDay,
+        investmentMode:$investmentMode,
+        ) {
+                result
+            }
+                      
+            }`,
     {
       deployHash: deployHash,
       blockHash: blockHash,
       timestamp: timestamp,
       from: from,
-      investmentDay: investmentDay,
       amount: amount,
+      tokens: tokens,
+      currentWiseDay: currentWiseDay,
+      investmentMode: investmentMode,
     }
   );
   console.log(response);
@@ -584,9 +592,11 @@ async function startTests() {
     "123",
     "123",
     "15000000000",
-    "10000000000"
+    "10000000000",
+    "13",
+    "15"
   );
-  await ReferralAdded("123", "123", "123", "123", "123", "123", "10000000000");
+  //await ReferralAdded("123", "123", "123", "123", "123", "123", "10000000000");
 }
 
 startTests();

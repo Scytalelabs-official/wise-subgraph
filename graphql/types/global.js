@@ -37,6 +37,12 @@ const globalType = new GraphQLObjectType({
     reservationActualWei: {
       type: GraphQLString,
     },
+    totalScsprContributed: {
+      type: GraphQLString,
+    },
+    totalTransferTokens: {
+      type: GraphQLString,
+    },
     stakeCount: {
       type: GraphQLString,
     },
