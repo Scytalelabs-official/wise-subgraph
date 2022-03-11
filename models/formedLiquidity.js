@@ -11,10 +11,10 @@ const formedLiquiditySchema = new Schema({
   tokenB: {
     type: String,
   },
-  amounttokenA: {
+  amountTokenA: {
     type: String,
   },
-  amounttokenB: {
+  amountTokenB: {
     type: String,
   },
   liquidity: {

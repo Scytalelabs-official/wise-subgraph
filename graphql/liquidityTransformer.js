@@ -500,24 +500,44 @@ const handleUniswapSwapedResult = {
       let global = await getOrCreateGlobal();
       global.uniswapSwaped = true;
       await global.save();
-
-      let newData = new UniswapSwapResult({
+      let uniswapswapresult = await UniswapSwapResult.findOne({
         id:
           process.env.WISETOKEN_CONTRACT_HASH +
           " - " +
           process.env.SYNTHETIC_CSPR_ADDRESS +
           " - " +
           process.env.PAIR_CONTRACT_HASH,
-        tokenA: process.env.WISETOKEN_CONTRACT_HASH,
-        tokenB: process.env.SYNTHETIC_CSPR_ADDRESS,
-        amountTokenA: args.amountTokenA,
-        amountTokenB: args.amountTokenB,
-        liquidity: args.liquidity,
-        pair: process.env.PAIR_CONTRACT_HASH,
-        to: "hash-0000000000000000000000000000000000000000000000000000000000000000",
       });
+      if (uniswapswapresult == null) {
+        let newData = new UniswapSwapResult({
+          id:
+            process.env.WISETOKEN_CONTRACT_HASH +
+            " - " +
+            process.env.SYNTHETIC_CSPR_ADDRESS +
+            " - " +
+            process.env.PAIR_CONTRACT_HASH,
+          tokenA: process.env.WISETOKEN_CONTRACT_HASH,
+          tokenB: process.env.SYNTHETIC_CSPR_ADDRESS,
+          amountTokenA: args.amountTokenA,
+          amountTokenB: args.amountTokenB,
+          liquidity: args.liquidity,
+          pair: process.env.PAIR_CONTRACT_HASH,
+          to: "hash-0000000000000000000000000000000000000000000000000000000000000000",
+        });
 
-      await UniswapSwapResult.create(newData);
+        await UniswapSwapResult.create(newData);
+      } else {
+        let response = await Response.findOne({ id: "2" });
+        if (response === null) {
+          // create new response
+          response = new Response({
+            id: "2",
+            result: false,
+          });
+          await response.save();
+        }
+        return response;
+      }
       let response = await Response.findOne({ id: "1" });
       if (response === null) {
         // create new response
@@ -744,11 +764,11 @@ const handleLiquidityAdded = {
         await UniswapSwapResult.create(newData);
       } else {
         uniswapswapresult.liquidity = args.liquidity;
-        uniswapswapresult.amountWcspr = (
-          BigInt(uniswapswapresult.amountWcspr) + BigInt(args.amountWcspr)
+        uniswapswapresult.amountTokenA = (
+          BigInt(uniswapswapresult.amountTokenA) + BigInt(args.amountWcspr)
         ).toString();
-        uniswapswapresult.amountScspr = (
-          BigInt(uniswapswapresult.amountScspr) + BigInt(args.amountScspr)
+        uniswapswapresult.amountTokenB = (
+          BigInt(uniswapswapresult.amountTokenB) + BigInt(args.amountScspr)
         ).toString();
 
         await uniswapswapresult.save();
@@ -800,12 +820,11 @@ const handleLiquidityRemoved = {
         }
         return response;
       } else {
-        uniswapswapresult.liquidity = args.liquidity;
-        uniswapswapresult.amountWcspr = (
-          BigInt(uniswapswapresult.amountWcspr) - BigInt(args.amountWcspr)
+        uniswapswapresult.amountTokenA = (
+          BigInt(uniswapswapresult.amountTokenA) - BigInt(args.amountWcspr)
         ).toString();
-        uniswapswapresult.amountScspr = (
-          BigInt(uniswapswapresult.amountScspr) - BigInt(args.amountScspr)
+        uniswapswapresult.amountTokenB = (
+          BigInt(uniswapswapresult.amountTokenB) - BigInt(args.amountScspr)
         ).toString();
 
         await uniswapswapresult.save();
@@ -838,7 +857,7 @@ const handleMasterRecord = {
   async resolve(parent, args, context) {
     try {
       let newData = new MasterRecord({
-        id: args.masterAddress,
+        masterAddress: args.masterAddress,
         amount: args.amount,
         source: args.source,
       });
@@ -872,5 +891,5 @@ module.exports = {
   handleFormedLiquidity,
   handleLiquidityAdded,
   handleLiquidityRemoved,
-  handleMasterRecord
+  handleMasterRecord,
 };

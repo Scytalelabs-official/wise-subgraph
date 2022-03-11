@@ -11,10 +11,10 @@ const uniswapSwapedResultSchema = new Schema({
   tokenB: {
     type: String,
   },
-  amounttokenA: {
+  amountTokenA: {
     type: String,
   },
-  amounttokenB: {
+  amountTokenB: {
     type: String,
   },
   liquidity: {

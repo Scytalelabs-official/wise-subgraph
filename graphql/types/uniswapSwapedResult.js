@@ -19,10 +19,10 @@ const uniswapSwapedResultType = new GraphQLObjectType({
     tokenB: {
       type: GraphQLString,
     },
-    amounttokenA: {
+    amountTokenA: {
       type: GraphQLString,
     },
-    amounttokenB: {
+    amountTokenB: {
       type: GraphQLString,
     },
     liquidity: {
