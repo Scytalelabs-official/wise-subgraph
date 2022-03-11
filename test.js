@@ -401,68 +401,215 @@ async function WiseReservation(
   console.log(response);
 }
 
+async function DepositedLiquidity(user, amount, deployHash) {
+  console.log("Calling handleDepositedLiquidity mutation...");
+  let response = await request(
+    process.env.GRAPHQL,
+    `mutation handleDepositedLiquidity( $user: String!, $amount: String!, $deployHash: String!){
+            handleDepositedLiquidity( user: $user, amount: $amount, deployHash: $deployHash) {
+              result
+          }
+                    
+          }`,
+    {
+      user: user,
+      amount: amount,
+      deployHash: deployHash,
+    }
+  );
+  console.log(response);
+}
+
+async function Withdrawal(user, amount, deployHash) {
+  console.log("Calling handleWithdrawal mutation...");
+  let response = await request(
+    process.env.GRAPHQL,
+    `mutation handleWithdrawal( $user: String!, $amount: String!, $deployHash: String!){
+            handleWithdrawal( user: $user, amount: $amount, deployHash: $deployHash) {
+              result
+          }
+                    
+          }`,
+    {
+      user: user,
+      amount: amount,
+      deployHash: deployHash,
+    }
+  );
+  console.log(response);
+}
+
+async function FormedLiquidity(
+  coverAmount,
+  amountTokenA,
+  amountTokenB,
+  liquidity,
+  deployHash
+) {
+  console.log("Calling handleFormedLiquidity mutation...");
+  let response = await request(
+    process.env.GRAPHQL,
+    `mutation handleFormedLiquidity( $ coverAmount:String! ,$amountTokenA:String!,$ amountTokenB: String!, $liquidity: String!,$deployHash: String!){
+            handleFormedLiquidity( coverAmount:$coverAmount, amountTokenA:$amountTokenA,  amountTokenB: $ amountTokenB, liquidity: $ liquidity, deployHash: $deployHash) {
+              result
+          }
+                    
+          }`,
+    {
+      coverAmount: coverAmount,
+      amountTokenA: amountTokenA,
+      amountTokenB: amountTokenB,
+      liquidity: liquidity,
+      deployHash: deployHash,
+    }
+  );
+  console.log(response);
+}
+
+async function LiquidityAdded(amountWcspr, amountScspr, liquidity) {
+  console.log("Calling handleLiquidityAdded mutation...");
+  let response = await request(
+    process.env.GRAPHQL,
+    `mutation handleLiquidityAdded( $amountWcspr: String!, $amountScspr: String!, $liquidity: String!){
+            handleLiquidityAdded( amountWcspr: $amountWcspr, amountScspr: $amountScspr, liquidity: $liquidity) {
+              result
+          }
+                    
+          }`,
+    {
+      amountWcspr: amountWcspr,
+      amountScspr: amountScspr,
+      liquidity: liquidity,
+    }
+  );
+  console.log(response);
+}
+
+async function LiquidityRemoved(amountWcspr, amountScspr, liquidity) {
+  console.log("Calling handleLiquidityRemoved mutation...");
+  let response = await request(
+    process.env.GRAPHQL,
+    `mutation handleLiquidityRemoved( $amountWcspr: String!, $amountScspr: String!, $liquidity: String!){
+            handleLiquidityRemoved( amountWcspr: $amountWcspr, amountScspr: $amountScspr, liquidity: $liquidity) {
+              result
+          }
+                    
+          }`,
+    {
+      amountWcspr: amountWcspr,
+      amountScspr: amountScspr,
+      liquidity: liquidity
+    }
+  );
+  console.log(response);
+}
+
+async function MasterRecord(masterAddress, amount, source) {
+  console.log("Calling handleMasterRecord mutation...");
+  let response = await request(
+    process.env.GRAPHQL,
+    `mutation handleMasterRecord( $masterAddress: String!, $amount: String!, $source: String!){
+            handleMasterRecord( masterAddress: $masterAddress, amount: $amount, source: $source) {
+              result
+          }
+                    
+          }`,
+    {
+      masterAddress: masterAddress,
+      amount: amount,
+      source: source,
+    }
+  );
+  console.log(response);
+}
+
 async function startTests() {
-  await RefundIssued("123", "10000000000", "123");
-  await CashBackIssued(
-    "100000000000000000",
-    "123",
-    "10000000000",
-    "10000000000",
-    "123"
-  );
-  await UniswapSwapedResult(
-    "10000000000",
-    "1000000000",
-    "1000000000000",
-    "123"
-  );
-  await UniswapReserves(
-    "10000000000",
-    "1000000000",
-    "1000000000000"
-  );
-  await LiquidityGuardStatus(
-    "true"
-  );
-  await GiveStatus("123");
-  await StakeStart(
-    "123",
-    "123",
-    "100000000000",
-    "123",
-    "10000000000",
-    "100000000000",
-    "15000000000",
-    "15000000000",
-    "123"
-  );
-  await StakeEnd("123", "15000000000", "10000000000", "10000000000");
-  await InterestScraped(
-    "123",
-    "15000000000",
-    "10000000000",
-    "1000000000",
-    "1000000000"
-  );
-  await NewGlobals(
-    "100000000000",
-    "10000000000",
-    "1000000000",
-    "100000000000",
-    "15000000000",
-    "123",
-    "123"
-  );
-  await NewSharePrice("10000000000000", "100000000000");
-  await WiseReservation(
-    "123",
-    "123",
-    "123",
-    "123",
-    "15000000000",
+  // await RefundIssued("123", "10000000000", "123");
+  // await DepositedLiquidity("123", "10000000000", "123");
+  // await Withdrawal("123", "10000000000", "123");
+  // await FormedLiquidity(
+  //   "10000000000",
+  //   "10000000000",
+  //   "1000000000",
+  //   "1000000000000",
+  //   "123"
+  // );
+  // await LiquidityAdded(
+  //   "123",
+  //   "123", 
+  //   "10000000000"
+  // );
+  
+  // await MasterRecord(
+  //   "10000000000",
+  //   "10000000000", 
+  //   "10000000000"
+  // );
+  // await CashBackIssued(
+  //   "100000000000000000",
+  //   "123",
+  //   "10000000000",
+  //   "10000000000",
+  //   "123"
+  // );
+  // await UniswapSwapedResult(
+  //   "10000000000",
+  //   "1000000000",
+  //   "1000000000000",
+  //   "123"
+  // );
+  // await UniswapReserves(
+  //   "10000000000",
+  //   "1000000000",
+  //   "1000000000000"
+  // );
+  // await LiquidityGuardStatus(
+  //   "true"
+  // );
+  // await GiveStatus("123");
+  // await StakeStart(
+  //   "123",
+  //   "123",
+  //   "100000000000",
+  //   "123",
+  //   "10000000000",
+  //   "100000000000",
+  //   "15000000000",
+  //   "15000000000",
+  //   "123"
+  // );
+  // await StakeEnd("123", "15000000000", "10000000000", "10000000000");
+  // await InterestScraped(
+  //   "123",
+  //   "15000000000",
+  //   "10000000000",
+  //   "1000000000",
+  //   "1000000000"
+  // );
+  // await NewGlobals(
+  //   "100000000000",
+  //   "10000000000",
+  //   "1000000000",
+  //   "100000000000",
+  //   "15000000000",
+  //   "123",
+  //   "123"
+  // );
+  // await NewSharePrice("10000000000000", "100000000000");
+  // await WiseReservation(
+  //   "123",
+  //   "123",
+  //   "123",
+  //   "123",
+  //   "15000000000",
+  //   "10000000000"
+  // );
+  // await ReferralAdded("123", "123", "123", "123", "123", "123", "10000000000");
+  await LiquidityRemoved(
+    "10000000000000",
+    "10000000000000",
     "10000000000"
   );
-  await ReferralAdded("123", "123", "123", "123", "123", "123", "10000000000");
 }
 
 startTests();

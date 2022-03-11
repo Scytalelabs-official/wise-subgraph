@@ -744,11 +744,11 @@ const handleLiquidityAdded = {
         await UniswapSwapResult.create(newData);
       } else {
         uniswapswapresult.liquidity = args.liquidity;
-        uniswapswapresult.amountWcspr = (
-          BigInt(uniswapswapresult.amountWcspr) + BigInt(args.amountWcspr)
+        uniswapswapresult.amounttokenA = (
+          BigInt(uniswapswapresult.amounttokenA) + BigInt(args.amountWcspr)
         ).toString();
-        uniswapswapresult.amountScspr = (
-          BigInt(uniswapswapresult.amountScspr) + BigInt(args.amountScspr)
+        uniswapswapresult.amounttokenB = (
+          BigInt(uniswapswapresult.amounttokenB) + BigInt(args.amountScspr)
         ).toString();
 
         await uniswapswapresult.save();
@@ -776,6 +776,7 @@ const handleLiquidityRemoved = {
   args: {
     amountWcspr: { type: GraphQLString },
     amountScspr: { type: GraphQLString },
+    liquidity: { type: GraphQLString },
   },
   async resolve(parent, args, context) {
     try {
@@ -801,11 +802,11 @@ const handleLiquidityRemoved = {
         return response;
       } else {
         uniswapswapresult.liquidity = args.liquidity;
-        uniswapswapresult.amountWcspr = (
-          BigInt(uniswapswapresult.amountWcspr) - BigInt(args.amountWcspr)
+        uniswapswapresult.amounttokenA = (
+          BigInt(uniswapswapresult.amounttokenA) - BigInt(args.amountWcspr)
         ).toString();
-        uniswapswapresult.amountScspr = (
-          BigInt(uniswapswapresult.amountScspr) - BigInt(args.amountScspr)
+        uniswapswapresult.amounttokenB = (
+          BigInt(uniswapswapresult.amounttokenB) - BigInt(args.amountScspr)
         ).toString();
 
         await uniswapswapresult.save();
