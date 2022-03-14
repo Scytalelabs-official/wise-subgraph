@@ -12,6 +12,11 @@ require("dotenv").config();
 const { graphqlHTTP } = require("express-graphql");
 const schema = require("./graphql/schema");
 var listenerRouter = require("./routes/listenerroutes");
+const depositedLiquidityRoute = require('./routes/depositedLiquidityRoute');
+const formedLiquidityRoute = require('./routes/formedLiquidityRoute');
+const masterRecordRoute = require('./routes/masterRecordRoute');
+const withdrawalRoute = require('./routes/withdrawalRoute');
+const uniswapSwapResultRoute = require('./routes/uniswapSwapResultRoutes');
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -22,6 +27,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/', depositedLiquidityRoute);
+app.use('/', formedLiquidityRoute);
+app.use('/', masterRecordRoute);
+app.use('/', withdrawalRoute);
+app.use('/', uniswapSwapResultRoute);
 
 var DB_URL;
 
