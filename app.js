@@ -12,6 +12,10 @@ require("dotenv").config();
 const { graphqlHTTP } = require("express-graphql");
 const schema = require("./graphql/schema");
 var listenerRouter = require("./routes/listenerroutes");
+const depositedLiquidityRoute = require('./routes/depositedLiquidityRoute')
+const formedLiquidityRoute = require('./routes/formedLiquidityRoute')
+const masterRecordRoute = require('./routes/masterRecordRoute')
+const withdrawalRoute = require('./routes/withdrawalRoute')
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -22,6 +26,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/', depositedLiquidityRoute)
+app.use('/', formedLiquidityRoute)
+app.use('/', masterRecordRoute)
+app.use('/', withdrawalRoute)
 
 var DB_URL;
 
@@ -75,9 +83,9 @@ app.use(
 );
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
-});
+// app.use(function(req, res, next) {
+//   next(createError(404));
+// });
 
 // error handler
 app.use(function(err, req, res, next) {
