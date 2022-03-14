@@ -11,7 +11,11 @@ router.route("/depositedLiquidity").get(async(req, res, next) =>{
           message: "There is no data in deposited liquidity",
         });
       } else {
-        return res.send(depo);
+        return res.status(200).json({
+          success: true,
+          message: "Data has been Successfully received",
+          data: depo
+        });
       }
     } catch (error) {
       console.log("error (try-catch) : " + error);

@@ -11,7 +11,11 @@ router.route("/withdrawal").get(async(req, res, next) =>{
           message: "There is no data in withdrawal",
         });
       } else {
-        return res.send(withdraw.data);
+        return res.status(200).json({
+          success: true,
+          message: "Data has been Successfully received",
+          data: withdraw
+        });
       }
     } catch (error) {
       console.log("error (try-catch) : " + error);

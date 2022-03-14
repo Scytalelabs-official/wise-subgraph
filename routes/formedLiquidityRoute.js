@@ -11,7 +11,11 @@ router.route("/formedLiquidity").get(async(req, res, next) =>{
           message: "There is no data in formed liquidity",
         });
       } else {
-        return res.send(formed.data);
+        return res.status(200).json({
+          success: true,
+          message: "Data has been Successfully received",
+          data: formed
+        });
       }
     } catch (error) {
       console.log("error (try-catch) : " + error);

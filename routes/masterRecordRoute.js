@@ -11,7 +11,11 @@ router.route("/masterRecord").get(async(req, res, next) =>{
           message: "There is no data in Master Record",
         });
       } else {
-        return res.send(master);
+        return res.status(200).json({
+            success: true,
+            message: "Data has been Successfully received",
+            data: master
+          });
       }
     } catch (error) {
       console.log("error (try-catch) : " + error);
