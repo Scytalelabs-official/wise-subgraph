@@ -74,30 +74,30 @@ const test = async () => {
 	// await getDeploy(NODE_ADDRESS!, mintDeployHash);
 	// console.log("... Token minted successfully.");
 
-	const createStakedeployHash = await wise.createStakeJsclient(
-		KEYS,
-		STAKED_AMOUNT!,
-		LOCK_DAYS!,
-		"e76579a8c3ddacf321d4634588833d5882e13df0c8d2e91f1ca535c16c9dbbfa",
-		WISE_FUNCTIONS_INSTALL_PAYMENT_AMOUNT!
-	);
-	console.log(`... Contract createStake deployHash : ${createStakedeployHash}`);
-
-	await getDeploy(NODE_ADDRESS!, createStakedeployHash);
-	console.log("... Stake created successfully");
-
-	// const setLiquidityTransfomer = await wise.setLiquidityTransfomer(
+	// const createStakedeployHash = await wise.createStakeJsclient(
 	// 	KEYS,
-	// 	IMMUTABLE_TRANSFORMER!,
-	// 	TRANSFORMER_PURSE!,
-	// 	RESERVE_WISE_PAYMENT_AMOUNT!
+	// 	STAKED_AMOUNT!,
+	// 	LOCK_DAYS!,
+	// 	"e76579a8c3ddacf321d4634588833d5882e13df0c8d2e91f1ca535c16c9dbbfa",
+	// 	WISE_FUNCTIONS_INSTALL_PAYMENT_AMOUNT!
 	// );
-	// console.log(
-	// 	"... setLiquidityTransfomer deploy hash: ",
-	// 	setLiquidityTransfomer
-	// );
-	// await getDeploy(NODE_ADDRESS!, setLiquidityTransfomer);
-	// console.log("... setLiquidityTransfomer created successfully");
+	// console.log(`... Contract createStake deployHash : ${createStakedeployHash}`);
+
+	// await getDeploy(NODE_ADDRESS!, createStakedeployHash);
+	// console.log("... Stake created successfully");
+
+	const setLiquidityTransfomer = await wise.setLiquidityTransfomer(
+		KEYS,
+		IMMUTABLE_TRANSFORMER!,
+		TRANSFORMER_PURSE!,
+		RESERVE_WISE_PAYMENT_AMOUNT!
+	);
+	console.log(
+		"... setLiquidityTransfomer deploy hash: ",
+		setLiquidityTransfomer
+	);
+	await getDeploy(NODE_ADDRESS!, setLiquidityTransfomer);
+	console.log("... setLiquidityTransfomer created successfully");
 
 	// const setBusd = await wise.setBusd(
 	// 	KEYS,

@@ -80,6 +80,64 @@ const test = async () => {
 
 	console.log("Liquidity Transformer contract Hash: ",LIQUIDITYTRANSFORMER_CONTRACT_HASH!);
 
+	//first mint tokens in wise contract
+	//reserve_wise
+	const _reserve_Wise = await liquidity.reserve_Wise(
+		KEYS,
+		INVESTMENT_MODE!,
+		MSG_VALUE!,
+		CALLER_PURSE!,
+		RESERVE_WISE_PAYMENT_AMOUNT!
+	);
+	console.log("... _reserve_Wise deploy hash: ", _reserve_Wise);
+
+	await getDeploy(NODE_ADDRESS!, _reserve_Wise);
+	console.log("... _reserve_Wise called successfully");
+
+	//call mint and approve in erc20 first
+	//reserve_wise_with_token
+	// const reserveWiseWithToken = await liquidity.reserveWiseWithToken(
+	// 	KEYS,
+	// 	TOKEN1_CONTRACT!,
+	// 	AMOUNT!,
+	// 	INVESTMENT_MODE!,
+	// 	CALLER_PURSE!,
+	// 	RESERVE_WISE_PAYMENT_AMOUNT!
+	// );
+	// console.log("... reserveWiseWithToken deploy hash: ", reserveWiseWithToken);
+	// await getDeploy(NODE_ADDRESS!, reserveWiseWithToken);
+	// console.log("... reserveWiseWithToken called successfully");
+
+	//requestRefund
+	const requestRefund = await liquidity.requestRefund(
+		KEYS,
+	 CALLER_PURSE!,
+		RESERVE_WISE_PAYMENT_AMOUNT!
+	);
+	console.log(`... requestRefund deploy hash: ${requestRefund}`);
+
+	await getDeploy(NODE_ADDRESS!, requestRefund);
+	console.log("... requestRefund called successfully");
+
+	// call set_liquidity_transfomer
+	// call set_wise
+	// call erc20 mint against scspr_package
+	// call approve of scspr against router_package
+	// call erc20 mint against pair_package
+	// call erc20 2 mint against scspr_package
+	// call erc20 2 mint against pair_package
+	// call pair initialize function
+	// call pair sync method
+	//forwardliquidity
+	// const forwardLiquidity = await liquidity.forwardLiquidity(
+	// 	KEYS,
+	// 	CALLER_PURSE!,
+	// 	RESERVE_WISE_PAYMENT_AMOUNT!
+	// );
+	// console.log("... forwardLiquidity deploy hash: ", forwardLiquidity);
+	// await getDeploy(NODE_ADDRESS!, forwardLiquidity);
+	// console.log("... forwardLiquidity called successfully");
+
 	// const _setSettings = await liquidity.setSettings(
 	// 	KEYS,
 	// 	WISETOKEN_CONTRACT_HASH!,
@@ -91,50 +149,6 @@ const test = async () => {
 
 	// await getDeploy(NODE_ADDRESS!, _setSettings);
 	// console.log("... _setSettings called successfully");
-
-	const _reserve_Wise = await liquidity.reserve_Wise(
-		KEYS,
-		INVESTMENT_MODE!,
-		MSG_VALUE!,
-		CALLER_PURSE!,
-		RESERVE_WISE_PAYMENT_AMOUNT!
-	);
-	console.log("... _reserve_Wise deploy hash: ", _reserve_Wise);
-
-	await getDeploy(NODE_ADDRESS!, _reserve_Wise);
-	console.log("... _reserve_Wise created successfully");
-
-	// const reserveWiseWithToken = await liquidity.reserveWiseWithToken(
-	// 	KEYS,
-	// 	TOKEN1_CONTRACT!,
-	// 	AMOUNT!,
-	// 	INVESTMENT_DAYS!,
-	// 	REFERAL_ADDRESS!,
-	// 	RESERVE_WISE_PAYMENT_AMOUNT!
-	// );
-	// console.log("... reserveWiseWithToken deploy hash: ", reserveWiseWithToken);
-	// await getDeploy(NODE_ADDRESS!, reserveWiseWithToken);
-	// console.log("... reserveWiseWithToken created successfully");
-
-	// const reserveWise = await liquidity.reserveWise(
-	// 	KEYS,
-	// 	INVESTMENT_DAYS!,
-	// 	REFERAL_ADDRESS!,
-	// 	SENDER_ADDRESS!,
-	// 	SENDER_VALUE!,
-	// 	RESERVE_WISE_PAYMENT_AMOUNT!
-	// );
-	// console.log("... reserveWise deploy hash: ", reserveWise);
-	// await getDeploy(NODE_ADDRESS!, reserveWise);
-	// console.log("... reserveWise createINVESTMENT_DAYd successfully");
-
-	// const forwardLiquidity = await liquidity.forwardLiquidity(
-	// 	KEYS,
-	// 	RESERVE_WISE_PAYMENT_AMOUNT!
-	// );
-	// console.log("... forwardLiquidity deploy hash: ", forwardLiquidity);
-	// await getDeploy(NODE_ADDRESS!, forwardLiquidity);
-	// console.log("... forwardLiquidity created successfully");
 
 	// const getMyTokens = await liquidity.getMyTokens(
 	// 	KEYS,
@@ -159,16 +173,6 @@ const test = async () => {
 
 	//const currentWiseDay = await liquidity.currentWiseDay();
 	//console.log(`... currentWiseDay : ${currentWiseDay}`);
-
-	// const SUCCESORPURSE = new CLURef(
-	// 	decodeBase16(SUCCESOR_PURSE),
-	// 	AccessRights.READ_ADD_WRITE
-	// );
-	// const requestRefund = await liquidity.requestRefund(
-	// 	KEYS.publicKey,
-	// 	SUCCESORPURSE
-	// );
-	// console.log(`... Contract allpairs: ${requestRefund}`);
 
 };
 

@@ -77,7 +77,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
 
     let newData = req.body.eventdata;
     let deployHash = req.body.deployHash;
-    let timestamp = req.body.timestamp;
+    let timestamp = (req.body.timestamp).toString();
     let block_hash = req.body.block_hash;
     let eventName = req.body.eventname;
     console.log("... Deployhash: ", deployHash);
@@ -744,12 +744,12 @@ router.route("/geteventsdata").post(async function (req, res, next) {
       console.log(newData[3][0].data + " = " + newData[3][1].data);
       console.log(newData[4][0].data + " = " + newData[4][1].data);
 
-      var from = splitdata(newData[2][1].data);
+      var from = splitdata(newData[5][1].data);
       var amount = newData[3][1].data;
-      var tokens = newData[4][1].data;
+      var tokens = newData[6][1].data;
 
-      var currentWiseDay = newData[5][1].data;
-      var investmentMode = newData[6][1].data;
+      var currentWiseDay = newData[1][1].data;
+      var investmentMode = newData[4][1].data;
 
       console.log("from: ", from);
       console.log("amount: ", amount);

@@ -263,7 +263,7 @@ class LIQUIDITYClient {
 		const runtimeArgs = RuntimeArgs.fromMap({
 			token_address: CLValueBuilder.key(tokenContractHash),
 			token_amount: CLValueBuilder.u256(tokenAmount),
-			investmentMode: CLValueBuilder.u8(investmentMode),
+			investment_mode: CLValueBuilder.u8(investmentMode),
 			caller_purse:caller_purse
 		});
 
@@ -286,9 +286,16 @@ class LIQUIDITYClient {
 
 	public async forwardLiquidity(
 		keys: Keys.AsymmetricKey,
+		succesorPurse:string,
 		paymentAmount: string
 	) {
-		const runtimeArgs = RuntimeArgs.fromMap({});
+		const succesor_purse = new CLURef(
+			decodeBase16(succesorPurse),
+			AccessRights.READ_ADD_WRITE
+		);
+		const runtimeArgs = RuntimeArgs.fromMap({
+			purse: succesor_purse
+		});
 
 		const deployHash = await contractCall({
 			chainName: this.chainName,
@@ -382,7 +389,7 @@ class LIQUIDITYClient {
 		const deployHash = await contractCall({
 			chainName: this.chainName,
 			contractHash: this.contractHash,
-			entryPoint: "request_refund_Jsclient",
+			entryPoint: "request_refund_jsclient",
 			paymentAmount,
 			nodeAddress: this.nodeAddress,
 			keys: keys,
