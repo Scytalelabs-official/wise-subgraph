@@ -17,6 +17,8 @@ const formedLiquidityRoute = require('./routes/formedLiquidityRoute');
 const masterRecordRoute = require('./routes/masterRecordRoute');
 const withdrawalRoute = require('./routes/withdrawalRoute');
 const uniswapSwapResultRoute = require('./routes/uniswapSwapResultRoutes');
+const stakeRoute = require('./routes/stakeRoute');
+const globalRoutes = require('./routes/globalRoutes');
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -32,6 +34,8 @@ app.use('/', formedLiquidityRoute);
 app.use('/', masterRecordRoute);
 app.use('/', withdrawalRoute);
 app.use('/', uniswapSwapResultRoute);
+app.use('/', stakeRoute);
+app.use('/', globalRoutes);
 
 var DB_URL;
 

@@ -33,6 +33,7 @@ const {
 	IMMUTABLE_TRANSFORMER,
 	TRANSFORMER_PURSE,
 	EQUALIZER_ADDRESS,
+	STABLE_USD_EQUIVALENT_CONTRACT_HASH,
 	INVESTOR_ADDRESS,
 	AMOUNT,
 	LOCK_DAYS,
@@ -59,10 +60,11 @@ const test = async () => {
 	
 	await wise.setContractHash(WISETOKEN_CONTRACT_HASH!);
 
-	// const _refferer = new CLByteArray(
-	// 	Uint8Array.from(Buffer.from("7eb6fb7fb5c61de23f296f0accc2d4bda83e7c2a4e95d18d5f466c783b1e2219", "hex"))
-	// );
-	// //mint
+	const _refferer = new CLByteArray(
+		Uint8Array.from(Buffer.from("7eb6fb7fb5c61de23f296f0accc2d4bda83e7c2a4e95d18d5f466c783b1e2219", "hex"))
+	);
+
+	//mint
 	// const mintDeployHash = await wise.mint(
 	// 	KEYS,
 	// 	_refferer,
@@ -74,6 +76,19 @@ const test = async () => {
 	// await getDeploy(NODE_ADDRESS!, mintDeployHash);
 	// console.log("... Token minted successfully.");
 
+	//setStableUSD
+	// const setBusd = await wise.setStableUsd(
+	// 	KEYS,
+	// 	STABLE_USD_EQUIVALENT_CONTRACT_HASH!,
+	// 	RESERVE_WISE_PAYMENT_AMOUNT!
+	// );
+	// console.log("... setBusd deploy hash: ", setBusd);
+	// await getDeploy(NODE_ADDRESS!, setBusd);
+	// console.log("... setBusd called successfully");
+
+	// set_stable_usd_equivalent
+	// mint staked amount wise to stakerid
+	// need to create pairs and add liquidity for this path (stakeable,scspr,wcspr,stable_usd)
 	// const createStakedeployHash = await wise.createStakeJsclient(
 	// 	KEYS,
 	// 	STAKED_AMOUNT!,
@@ -86,27 +101,18 @@ const test = async () => {
 	// await getDeploy(NODE_ADDRESS!, createStakedeployHash);
 	// console.log("... Stake created successfully");
 
-	const setLiquidityTransfomer = await wise.setLiquidityTransfomer(
-		KEYS,
-		IMMUTABLE_TRANSFORMER!,
-		TRANSFORMER_PURSE!,
-		RESERVE_WISE_PAYMENT_AMOUNT!
-	);
-	console.log(
-		"... setLiquidityTransfomer deploy hash: ",
-		setLiquidityTransfomer
-	);
-	await getDeploy(NODE_ADDRESS!, setLiquidityTransfomer);
-	console.log("... setLiquidityTransfomer created successfully");
-
-	// const setBusd = await wise.setBusd(
+	// const setLiquidityTransfomer = await wise.setLiquidityTransfomer(
 	// 	KEYS,
-	// 	EQUALIZER_ADDRESS!,
+	// 	IMMUTABLE_TRANSFORMER!,
+	// 	TRANSFORMER_PURSE!,
 	// 	RESERVE_WISE_PAYMENT_AMOUNT!
 	// );
-	// console.log("... setBusd deploy hash: ", setBusd);
-	// await getDeploy(NODE_ADDRESS!, setBusd);
-	// console.log("... setBusd created successfully");
+	// console.log(
+	// 	"... setLiquidityTransfomer deploy hash: ",
+	// 	setLiquidityTransfomer
+	// );
+	// await getDeploy(NODE_ADDRESS!, setLiquidityTransfomer);
+	// console.log("... setLiquidityTransfomer created successfully");
 
 	// const renounceKeeper = await wise.renounceKeeper(
 	// 	KEYS,

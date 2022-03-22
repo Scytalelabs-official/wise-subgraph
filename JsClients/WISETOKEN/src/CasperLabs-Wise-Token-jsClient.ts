@@ -530,7 +530,7 @@ class WISETokenClient {
 		const deployHash = await contractCall({
 			chainName: this.chainName,
 			contractHash: this.contractHash,
-			entryPoint: "set_stable_usd",
+			entryPoint: "set_stable_usd_equivalent",
 			paymentAmount,
 			nodeAddress: this.nodeAddress,
 			keys: keys,
@@ -852,16 +852,6 @@ class WISETokenClient {
 		referrer: string,
 		paymentAmount:string
 	) {
-		
-		// const logic=new CLList([new CLU32(3), new CLU32(3), new CLU32(3), new CLU32(3)
-		// 	,new CLU32(1), new CLU32(2), new CLU32(3), new CLU32(3)
-		// 	,new CLU32(1), new CLU32(2), new CLU32(3), new CLU32(3)
-		// 	,new CLU32(1), new CLU32(2), new CLU32(3), new CLU32(3)
-		// 	,new CLU32(1), new CLU32(2), new CLU32(3), new CLU32(3)
-		// 	,new CLU32(1), new CLU32(2), new CLU32(3), new CLU32(3)
-		// 	,new CLU32(1), new CLU32(2), new CLU32(3), new CLU32(3)
-		// 	,new CLU32(1), new CLU32(2), new CLU32(3), new CLU32(3)]);
-		// console.log("logic: ",logic);
 		
 		const _referrer=new CLKey(new CLAccountHash(Uint8Array.from(Buffer.from(referrer, "hex"))));
 		const runtimeArgs = RuntimeArgs.fromMap({
