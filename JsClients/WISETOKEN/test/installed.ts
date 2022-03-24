@@ -88,7 +88,10 @@ const test = async () => {
 
 	// set_stable_usd_equivalent
 	// mint staked amount wise to stakerid
+	// set_scspr
+	// set_allow_deposit
 	// need to create pairs and add liquidity for this path (stakeable,scspr,wcspr,stable_usd)
+	
 	// const createStakedeployHash = await wise.createStakeJsclient(
 	// 	KEYS,
 	// 	STAKED_AMOUNT!,
