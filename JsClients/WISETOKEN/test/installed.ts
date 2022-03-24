@@ -181,3 +181,19 @@ const test = async () => {
 };
 
 //test();
+
+export const balanceOf = async (contractHash:string, key:string) => {
+  
+	console.log(`... Contract Hash: ${contractHash}`);
+  
+	// We don't need hash- prefix so i'm removing it
+	await wise.setContractHash(contractHash);
+  
+   //balanceof
+	let balance = await wise.balanceOf(key);
+  
+	console.log(`... Balance: ${balance}`);
+  
+	return balance;
+  
+  };
