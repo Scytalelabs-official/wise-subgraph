@@ -42,7 +42,12 @@ const {
 	STAKED_AMOUNT,
 	WISE_FUNCTIONS_INSTALL_PAYMENT_AMOUNT,
 	WISETOKEN_CONTRACT_HASH,
-	WISETOKEN_PACKAGE_HASH
+	WISETOKEN_PACKAGE_HASH,
+	CALLER_PURSE,
+	TOKEN_AMOUNT,
+	TOKEN_ADRESS,
+	STAKE_ID,
+	SCRAPE_DAYS
 } = process.env;
 
 const KEYS = Keys.Ed25519.parseKeyFiles(
@@ -102,7 +107,56 @@ const test = async () => {
 	// console.log(`... Contract createStake deployHash : ${createStakedeployHash}`);
 
 	// await getDeploy(NODE_ADDRESS!, createStakedeployHash);
-	// console.log("... Stake created successfully");
+	// console.log("... Stake called successfully");
+
+	// const createStakeWithCsprdeployHash = await wise.createStakeWithCsprJsclient(
+	// 	KEYS,
+	// 	LOCK_DAYS!,
+	// 	"e76579a8c3ddacf321d4634588833d5882e13df0c8d2e91f1ca535c16c9dbbfa",
+	// 	STAKED_AMOUNT!,
+	// 	CALLER_PURSE!,
+	// 	WISE_FUNCTIONS_INSTALL_PAYMENT_AMOUNT!
+	// );
+	// console.log(`... Contract createStakeWithCspr deployHash : ${createStakeWithCsprdeployHash}`);
+
+	// await getDeploy(NODE_ADDRESS!, createStakeWithCsprdeployHash);
+	// console.log("... Stake with Cspr called successfully");
+
+	// const createStakeWithTokendeployHash = await wise.createStakeWithTokenJsclient(
+	// 	KEYS,
+	// 	TOKEN_ADRESS!,
+	// 	TOKEN_AMOUNT!,
+	// 	LOCK_DAYS!,
+	// 	"e76579a8c3ddacf321d4634588833d5882e13df0c8d2e91f1ca535c16c9dbbfa",
+	// 	WISE_FUNCTIONS_INSTALL_PAYMENT_AMOUNT!
+	// );
+	// console.log(`... Contract createStakeWithToken deployHash : ${createStakeWithTokendeployHash}`);
+
+	// await getDeploy(NODE_ADDRESS!, createStakeWithTokendeployHash);
+	// console.log("... Stake WithToken called successfully");
+	
+	//first createstake
+	// const endStakedeployHash = await wise.endStakeJsclient(
+	// 	KEYS,
+	// 	STAKE_ID!,
+	// 	WISE_FUNCTIONS_INSTALL_PAYMENT_AMOUNT!
+	// );
+	// console.log(`... Contract endStake deployHash : ${endStakedeployHash}`);
+
+	// await getDeploy(NODE_ADDRESS!, endStakedeployHash);
+	// console.log("...endStake called successfully");
+
+	//first createstake
+	// const scrapeInterestdeployHash = await wise.scrapeInterestJsclient(
+	// 	KEYS,
+	// 	STAKE_ID!,
+	// 	SCRAPE_DAYS!,
+	// 	WISE_FUNCTIONS_INSTALL_PAYMENT_AMOUNT!
+	// );
+	// console.log(`... Contract scrapeInterest deployHash : ${scrapeInterestdeployHash}`);
+
+	// await getDeploy(NODE_ADDRESS!, scrapeInterestdeployHash);
+	// console.log("...scrapeInterest called successfully");
 
 	// const setLiquidityTransfomer = await wise.setLiquidityTransfomer(
 	// 	KEYS,
