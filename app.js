@@ -11,6 +11,7 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 const { graphqlHTTP } = require("express-graphql");
 const schema = require("./graphql/schema");
+const headerMiddleware = require("./middlewares/HeaderMiddleware");
 var listenerRouter = require("./routes/listenerroutes");
 const depositedLiquidityRoute = require("./routes/depositedLiquidityRoute");
 const formedLiquidityRoute = require("./routes/formedLiquidityRoute");
@@ -30,14 +31,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
-app.use("/", depositedLiquidityRoute);
-app.use("/", formedLiquidityRoute);
-app.use("/", masterRecordRoute);
-app.use("/", withdrawalRoute);
-app.use("/", uniswapSwapResultRoute);
-app.use("/", stakeRoute);
-app.use("/", globalRoutes);
-app.use("/", userRoutes);
 
 var DB_URL;
 
@@ -65,22 +58,18 @@ connect.then(
   }
 );
 
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "OPTIONS, GET, POST, PUT, PATCH, DELETE"
-  );
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
-  }
-  next();
-});
+app.use(headerMiddleware);
 
 app.use("/", indexRouter);
 app.use("/", listenerRouter);
+app.use("/", depositedLiquidityRoute);
+app.use("/", formedLiquidityRoute);
+app.use("/", masterRecordRoute);
+app.use("/", withdrawalRoute);
+app.use("/", uniswapSwapResultRoute);
+app.use("/", stakeRoute);
+app.use("/", globalRoutes);
+app.use("/", userRoutes);
 
 app.use(
   "/graphql",
