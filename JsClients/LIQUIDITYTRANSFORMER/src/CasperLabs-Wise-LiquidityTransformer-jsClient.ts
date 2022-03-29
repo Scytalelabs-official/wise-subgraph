@@ -73,6 +73,7 @@ class LIQUIDITYClient {
 		syntheticCsprAddress: string,
 		pairAddress: string,
 		routerAddress: string,
+		routerPackage: string,
 		wiseToken: string,
 		contractName: string,
 		paymentAmount: string,
@@ -90,6 +91,9 @@ class LIQUIDITYClient {
 		const router_contract = new CLByteArray(
 			Uint8Array.from(Buffer.from(routerAddress, "hex"))
 		);
+		const router_package = new CLByteArray(
+			Uint8Array.from(Buffer.from(routerPackage, "hex"))
+		);
 		const wiseTokenContractHash = new CLByteArray(
 			Uint8Array.from(Buffer.from(wiseToken, "hex"))
 		);
@@ -99,6 +103,7 @@ class LIQUIDITYClient {
 			scspr: CLValueBuilder.key(scspr_contract),
 			uniswap_pair: CLValueBuilder.key(pair_contract),
 			uniswap_router: CLValueBuilder.key(router_contract),
+			uniswap_router_package:CLValueBuilder.key(router_package),
 			wise_token: CLValueBuilder.key(wiseTokenContractHash),
 			contract_name: CLValueBuilder.string(contractName),
 		});
