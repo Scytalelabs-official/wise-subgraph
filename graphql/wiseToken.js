@@ -118,9 +118,9 @@ const handleStakeStart = {
         startDay: args.startDay,
         lockDays: args.lockDays,
         daiEquivalent: args.daiEquivalent,
-        reward: null,
-        closeDay: null,
-        penalty: null,
+        reward: ZERO,
+        closeDay: ZERO,
+        penalty: ZERO,
         scrapedYodas: ZERO,
         sharesPenalized: ZERO,
         referrerSharesPenalized: ZERO,
@@ -157,14 +157,13 @@ const handleStakeEnd = {
   },
   async resolve(parent, args, context) {
     try {
-      let newData = new Stake({
-        id: args.stakeID,
-        closeDay: args.closeDay,
-        penalty: args.penaltyAmount,
-        reward: args.rewardAmount,
-      });
+      let stake = await Stake.findOne({ id: args.stakeID });
+      stake.id = args.stakeID;
+      stake.closeDay =args.closeDay;
+      stake.penalty = args.penaltyAmount;
+      stake.reward = args.rewardAmount;
 
-      await Stake.create(newData);
+      await stake.save();
 
       let response = await Response.findOne({ id: "1" });
       if (response === null) {
