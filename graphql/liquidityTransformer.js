@@ -523,26 +523,26 @@ const handleUniswapSwapedResult = {
       await global.save();
       let uniswapswapresult = await UniswapSwapResult.findOne({
         id:
-          process.env.WISETOKEN_CONTRACT_HASH +
+          process.env.WISETOKEN_PACKAGE_HASH +
           " - " +
-          process.env.SYNTHETIC_CSPR_ADDRESS +
+          process.env.SYNTHETIC_CSPR_PACKAGE +
           " - " +
-          process.env.PAIR_CONTRACT_HASH,
+          process.env.PAIR_PACKAGE_HASH,
       });
       if (uniswapswapresult == null) {
         let newData = new UniswapSwapResult({
           id:
-            process.env.WISETOKEN_CONTRACT_HASH +
+            process.env.WISETOKEN_PACKAGE_HASH +
             " - " +
-            process.env.SYNTHETIC_CSPR_ADDRESS +
+            process.env.SYNTHETIC_CSPR_PACKAGE +
             " - " +
-            process.env.PAIR_CONTRACT_HASH,
-          tokenA: process.env.WISETOKEN_CONTRACT_HASH,
-          tokenB: process.env.SYNTHETIC_CSPR_ADDRESS,
+            process.env.PAIR_PACKAGE_HASH,
+          tokenA: process.env.WISETOKEN_PACKAGE_HASH,
+          tokenB: process.env.SYNTHETIC_CSPR_PACKAGE,
           amountTokenA: args.amountTokenA,
           amountTokenB: args.amountTokenB,
           liquidity: args.liquidity,
-          pair: process.env.PAIR_CONTRACT_HASH,
+          pair: process.env.PAIR_PACKAGE_HASH,
           to: "hash-0000000000000000000000000000000000000000000000000000000000000000",
         });
 
@@ -693,27 +693,27 @@ const handleFormedLiquidity = {
     try {
       let formedliquidityresult = await FormedLiquidity.findOne({
         id:
-          process.env.WISETOKEN_CONTRACT_HASH +
+          process.env.WISETOKEN_PACKAGE_HASH +
           " - " +
-          process.env.ERC20_CONTRACT_HASH +
+          process.env.ERC20_PACKAGE_HASH +
           " - " +
-          process.env.PAIR_CONTRACT_HASH,
+          process.env.PAIR_PACKAGE_HASH,
       });
       if (formedliquidityresult == null) {
         let newData = new FormedLiquidity({
           id:
-            process.env.WISETOKEN_CONTRACT_HASH +
+            process.env.WISETOKEN_PACKAGE_HASH +
             " - " +
-            process.env.ERC20_CONTRACT_HASH +
+            process.env.ERC20_PACKAGE_HASH +
             " - " +
-            process.env.PAIR_CONTRACT_HASH,
-          tokenA: process.env.WISETOKEN_CONTRACT_HASH,
-          tokenB: process.env.ERC20_CONTRACT_HASH,
+            process.env.PAIR_PACKAGE_HASH,
+          tokenA: process.env.WISETOKEN_PACKAGE_HASH,
+          tokenB: process.env.ERC20_PACKAGE_HASH,
           amountTokenA: args.amountTokenA,
           amountTokenB: args.amountTokenB,
           liquidity: args.liquidity,
-          pair: process.env.PAIR_CONTRACT_HASH,
-          to: process.env.ERC20_CONTRACT_HASH,
+          pair: process.env.PAIR_PACKAGE_HASH,
+          to: process.env.ERC20_PACKAGE_HASH,
           coverAmount: args.coverAmount,
         });
 
@@ -759,26 +759,26 @@ const handleLiquidityAdded = {
     try {
       let uniswapswapresult = await UniswapSwapResult.findOne({
         id:
-          process.env.WISETOKEN_CONTRACT_HASH +
+          process.env.WISETOKEN_PACKAGE_HASH +
           " - " +
-          process.env.SYNTHETIC_CSPR_ADDRESS +
+          process.env.SYNTHETIC_CSPR_PACKAGE +
           " - " +
-          process.env.PAIR_CONTRACT_HASH,
+          process.env.PAIR_PACKAGE_HASH,
       });
       if (uniswapswapresult == null) {
         let newData = new UniswapSwapResult({
           id:
-            process.env.WISETOKEN_CONTRACT_HASH +
+            process.env.WISETOKEN_PACKAGE_HASH +
             " - " +
-            process.env.SYNTHETIC_CSPR_ADDRESS +
+            process.env.SYNTHETIC_CSPR_PACKAGE +
             " - " +
-            process.env.PAIR_CONTRACT_HASH,
-          tokenA: process.env.WISETOKEN_CONTRACT_HASH,
-          tokenB: process.env.SYNTHETIC_CSPR_ADDRESS,
+            process.env.PAIR_PACKAGE_HASH,
+          tokenA: process.env.WISETOKEN_PACKAGE_HASH,
+          tokenB: process.env.SYNTHETIC_CSPR_PACKAGE,
           amountTokenA: args.amountWcspr,
           amountTokenB: args.amountScspr,
           liquidity: args.liquidity,
-          pair: process.env.PAIR_CONTRACT_HASH,
+          pair: process.env.PAIR_PACKAGE_HASH,
           to: "hash-0000000000000000000000000000000000000000000000000000000000000000",
         });
 
@@ -822,11 +822,11 @@ const handleLiquidityRemoved = {
     try {
       let uniswapswapresult = await UniswapSwapResult.findOne({
         id:
-          process.env.WISETOKEN_CONTRACT_HASH +
+          process.env.WISETOKEN_PACKAGE_HASH +
           " - " +
-          process.env.SYNTHETIC_CSPR_ADDRESS +
+          process.env.SYNTHETIC_CSPR_PACKAGE +
           " - " +
-          process.env.PAIR_CONTRACT_HASH,
+          process.env.PAIR_PACKAGE_HASH,
       });
 
       if (uniswapswapresult == null) {

@@ -1,7 +1,7 @@
 require("dotenv").config();
 const { getOrCreateGlobal, createUser, ZERO, ONE } = require("./shared");
 const { GraphQLString, GraphQLBoolean } = require("graphql");
-//var WiseTokenContract = require("../JsClients/WiseToken/test/installed.ts");
+var WiseTokenContract = require("../JsClients/WiseToken/test/installed.ts");
 
 const Stake = require("../models/stake");
 const User = require("../models/user");
@@ -10,7 +10,6 @@ const LiquidityGuardStatus = require("../models/liquidityGuardStatus");
 
 const Response = require("../models/response");
 const { responseType } = require("./types/response");
-const { findOne } = require("../models/user");
 
 const handleGiveStatus = {
   type: responseType,
@@ -244,11 +243,9 @@ const handleNewGlobals = {
       global.sharePrice = args.shareRate;
       global.referrerShares = args.referrerShares;
       global.currentWiseDay = args.currentWiseDay;
-      //global.ownerlessSupply =  (await WiseTokenContract.balanceOf(args.wiseAddress,UNISWAP_PAIR.toLowerCase())).toString();
-      //global.circulatingSupply = (WiseTokenContract.totalSupply()).toString();
+      global.ownerlessSupply =  (await WiseTokenContract.balanceOf(args.wiseAddress,args.UNISWAP_PAIR.toLowerCase())).toString();
+      global.circulatingSupply = (await WiseTokenContract.getTotalSupply(args.wiseAddress)).toString();
 
-      global.ownerlessSupply = "1000000000000";
-      global.circulatingSupply = "100000000000000";
       global.liquidSupply = (
         BigInt(global.circulatingSupply) - BigInt(global.ownerlessSupply)
       ).toString();
@@ -316,26 +313,26 @@ const handleUniswapReserves = {
     try {
       let uniswapReservesResult = await UniswapReserves.findOne({
         id:
-          process.env.WISETOKEN_CONTRACT_HASH +
+          process.env.WISETOKEN_PACKAGE_HASH +
           " - " +
-          process.env.SYNTHETIC_CSPR_ADDRESS +
+          process.env.SYNTHETIC_CSPR_PACKAGE +
           " - " +
-          process.env.PAIR_CONTRACT_HASH,
+          process.env.PAIR_PACKAGE_HASH,
       });
       if (uniswapReservesResult == null) {
         let newData = new UniswapReserves({
           id:
-            process.env.WISETOKEN_CONTRACT_HASH +
+            process.env.WISETOKEN_PACKAGE_HASH +
             " - " +
-            process.env.SYNTHETIC_CSPR_ADDRESS +
+            process.env.SYNTHETIC_CSPR_PACKAGE +
             " - " +
-            process.env.PAIR_CONTRACT_HASH,
+            process.env.PAIR_PACKAGE_HASH,
           reserveA: args.reserveA,
           reserveB: args.reserveB,
           blockTimestampLast: args.blockTimestampLast,
-          tokenA: process.env.WISETOKEN_CONTRACT_HASH,
-          tokenB: process.env.SYNTHETIC_CSPR_ADDRESS,
-          pair: process.env.PAIR_CONTRACT_HASH,
+          tokenA: process.env.WISETOKEN_PACKAGE_HASH,
+          tokenB: process.env.SYNTHETIC_CSPR_PACKAGE,
+          pair: process.env.PAIR_PACKAGE_HASH,
         });
         await UniswapReserves.create(newData);
       } else {

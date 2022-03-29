@@ -528,7 +528,6 @@ async function MasterRecord(masterAddress, amount, source) {
 }
 
 async function startTests() {
-  await RefundIssued("123", "10000000000", "123");
   await DepositedLiquidity("123", "10000000000", "123");
   await Withdrawal("123", "10000000000", "123");
   await FormedLiquidity(
@@ -541,13 +540,6 @@ async function startTests() {
   await LiquidityAdded("1000000000", "10000000000", "10000000000");
   await LiquidityRemoved("1000000000", "10000000000",);
   await MasterRecord("123", "10000000000", "profit");
-  await CashBackIssued(
-    "100000000000000000",
-    "123",
-    "10000000000",
-    "10000000000",
-    "123"
-  );
   await UniswapSwapedResult(
     "1000000000",
     "10000000000",
@@ -582,8 +574,8 @@ async function startTests() {
     "1000000000",
     "100000000000",
     "15000000000",
-    "123",
-    "123"
+    "2c4275cc575806d7c5108635aa70aa82bee52d02a368bc765d700943ff082a8a",
+    "52c5469146d177dee3934aec78b074936441516878c5b0d7fee4a123c1f00ec1"
   );
   await NewSharePrice("10000000000000", "100000000000");
   await WiseReservation(
@@ -595,6 +587,14 @@ async function startTests() {
     "10000000000",
     "13",
     "15"
+  );
+  await RefundIssued("123", "10000000000", "123");
+  await CashBackIssued(
+    "100000000000000000",
+    "123",
+    "10000000000",
+    "10000000000",
+    "123"
   );
   //await ReferralAdded("123", "123", "123", "123", "123", "123", "10000000000");
 }
