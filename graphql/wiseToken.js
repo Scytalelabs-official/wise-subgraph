@@ -1,7 +1,7 @@
 require("dotenv").config();
 const { getOrCreateGlobal, createUser, ZERO, ONE } = require("./shared");
 const { GraphQLString, GraphQLBoolean } = require("graphql");
-var WiseTokenContract = require("../JsClients/WiseToken/test/installed.ts");
+var WiseTokenContract = require("../JsClients/WISETOKEN/test/installed.ts");
 
 const Stake = require("../models/stake");
 const User = require("../models/user");
