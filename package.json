@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "start": "ts-node ./bin/www",
-    "test:liquiditytransformerinstall": "ts-node JsClients/LIQUIDITYTRANSFORMER/test/install.ts",
-    "test:liquiditytransformerinstalled": "ts-node JsClients/LIQUIDITYTRANSFORMER/test/installed.ts",
-    "test:wisetokeninstall": "ts-node JsClients/WISETOKEN/test/install.ts",
-    "test:wisetokeninstalled": "ts-node JsClients/WISETOKEN/test/installed.ts"
+    "deploy:liquidityTransformer": "ts-node Scripts/LIQUIDITYTRANSFORMER/deploy/liquidityTransformerContract.ts",
+    "deploy:liquidityTransformerFunctions": "ts-node Scripts/LIQUIDITYTRANSFORMER/deploy/liquidityTransformerContractFunction.ts",
+    "deploy:wiseToken": "ts-node Scripts/WISETOKEN/deploy/wiseContract.ts",
+    "deploy:wiseTokenFunctions": "ts-node Scripts/WISETOKEN/deploy/wiseContractFunction.ts"
   },
   "dependencies": {
     "axios": "^0.24.0",

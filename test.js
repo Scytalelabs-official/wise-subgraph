@@ -541,9 +541,9 @@ async function startTests() {
   await LiquidityRemoved("1000000000", "10000000000",);
   await MasterRecord("123", "10000000000", "profit");
   await UniswapSwapedResult(
-    "1000000000",
     "10000000000",
-    "1000000000000",
+    "100000000000",
+    "10000000000000",
     "123"
   );
   await UniswapReserves("10000000000", "1000000000", "1000000000000");

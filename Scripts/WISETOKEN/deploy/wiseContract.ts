@@ -1,6 +1,6 @@
 import { config } from "dotenv";
 config();
-import { LIQUIDITYClient, utils, constants } from "../src";
+import { WISETokenClient, utils, constants } from "../../../JsClients/WISETOKEN/src";
 import { parseTokenMeta, sleep, getDeploy } from "./utils";
 
 import { Keys } from "casper-js-sdk";
@@ -9,41 +9,43 @@ const {
 	NODE_ADDRESS,
 	EVENT_STREAM_ADDRESS,
 	CHAIN_NAME,
-	LIQUIDITYTRANSFORMER_WASM_PATH,
-	LIQUIDITYTRANSFORMER_MASTER_KEY_PAIR_PATH,
-	LIQUIDITYTRANSFORMER_INSTALL_PAYMENT_AMOUNT,
-	LIQUIDITYTRANSFORMER_CONTRACT_NAME,
+	WISETOKEN_WASM_PATH,
+	WISETOKEN_MASTER_KEY_PAIR_PATH,
+	WISETOKEN_INSTALL_PAYMENT_AMOUNT,
+	WISETOKEN_CONTRACT_NAME,
 	WCSPR_ADDRESS,
 	SYNTHETIC_CSPR_ADDRESS,
 	PAIR_ADDRESS,
 	ROUTER_ADDRESS,
-	ROUTER_PACKAGE_HASH,
-	WISETOKEN_CONTRACT_HASH
+	FACTORY_ADDRESS,
+	LIQUIDITY_GUARD_ADDRESS,
+	LAUNCH_TIME
 } = process.env;
 
 const KEYS = Keys.Ed25519.parseKeyFiles(
-	`${LIQUIDITYTRANSFORMER_MASTER_KEY_PAIR_PATH}/public_key.pem`,
-	`${LIQUIDITYTRANSFORMER_MASTER_KEY_PAIR_PATH}/secret_key.pem`
+	`${WISETOKEN_MASTER_KEY_PAIR_PATH}/public_key.pem`,
+	`${WISETOKEN_MASTER_KEY_PAIR_PATH}/secret_key.pem`
 );
 
 const test = async () => {
-	const liquidity = new LIQUIDITYClient(
+	const wise = new WISETokenClient(
 		NODE_ADDRESS!,
 		CHAIN_NAME!,
 		EVENT_STREAM_ADDRESS!
 	);
-
-	const installDeployHash = await liquidity.install(
+	
+	const installDeployHash = await wise.install(
 		KEYS,
 		WCSPR_ADDRESS!,
 		SYNTHETIC_CSPR_ADDRESS!,
 		PAIR_ADDRESS!,
 		ROUTER_ADDRESS!,
-		ROUTER_PACKAGE_HASH!,
-		WISETOKEN_CONTRACT_HASH!,
-		LIQUIDITYTRANSFORMER_CONTRACT_NAME!,
-		LIQUIDITYTRANSFORMER_INSTALL_PAYMENT_AMOUNT!,
-		LIQUIDITYTRANSFORMER_WASM_PATH!
+		FACTORY_ADDRESS!,
+		LIQUIDITY_GUARD_ADDRESS!,
+		LAUNCH_TIME!,
+		WISETOKEN_CONTRACT_NAME!,
+		WISETOKEN_INSTALL_PAYMENT_AMOUNT!,
+		WISETOKEN_WASM_PATH!
 	);
 
 	console.log(`... Contract installation deployHash: ${installDeployHash}`);
@@ -59,14 +61,14 @@ const test = async () => {
 
 	const contractHash = await utils.getAccountNamedKeyValue(
 		accountInfo,
-		`${LIQUIDITYTRANSFORMER_CONTRACT_NAME!}_contract_hash`
+		`${WISETOKEN_CONTRACT_NAME!}_contract_hash`
 	);
 
 	console.log(`... Contract Hash: ${contractHash}`);
 
 	const packageHash = await utils.getAccountNamedKeyValue(
 		accountInfo,
-		`${LIQUIDITYTRANSFORMER_CONTRACT_NAME!}_package_hash`
+		`${WISETOKEN_CONTRACT_NAME!}_package_hash`
 	);
 	
 	console.log(`... Package Hash: ${packageHash}`);

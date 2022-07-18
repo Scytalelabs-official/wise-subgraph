@@ -1,6 +1,6 @@
 import { config } from "dotenv";
 config();
-import { LIQUIDITYClient, utils, constants } from "../src";
+import { LIQUIDITYClient, utils, constants } from "../../../JsClients/LIQUIDITYTRANSFORMER/src";
 import { parseTokenMeta, sleep, getDeploy } from "./utils";
 
 import {
