@@ -54,11 +54,18 @@ Use the script file in package.json to perform the deployments
     "deploy:wiseToken": "ts-node Scripts/WISETOKEN/deploy/wiseContract.ts",
     "deploy:wiseTokenFunctions": "ts-node Scripts/WISETOKEN/deploy/wiseContractFunction.ts"
   },
+  
+```
 
 Use the following commands to perform deployments
 ```
+
 npm run deploy:liquidityTransformer
 npm run deploy:liquidityTransformerFunctions
 
 npm run deploy:wiseToken
 npm run deploy:wiseTokenFunctions
+
+```
+
+* CONFIGURE .env BEFORE and during DEPLOYMENT
