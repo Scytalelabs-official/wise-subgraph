@@ -48,7 +48,6 @@ We can fund the keys from casper live website faucet page on testnet.
 Use the script file in package.json to perform the deployments
 ```
   "scripts": {
-    "start": "ts-node ./bin/www",
     "deploy:liquidityTransformer": "ts-node Scripts/LIQUIDITYTRANSFORMER/deploy/liquidityTransformerContract.ts",
     "deploy:liquidityTransformerFunctions": "ts-node Scripts/LIQUIDITYTRANSFORMER/deploy/liquidityTransformerContractFunction.ts",
     "deploy:wiseToken": "ts-node Scripts/WISETOKEN/deploy/wiseContract.ts",
