@@ -529,7 +529,7 @@ const handleUniswapSwapedResult = {
           " - " +
           process.env.PAIR_PACKAGE_HASH,
       });
-      if (uniswapswapresult == null) {
+       if (uniswapswapresult == null) {
         let newData = new UniswapSwapResult({
           id:
             process.env.WISETOKEN_PACKAGE_HASH +
@@ -545,7 +545,6 @@ const handleUniswapSwapedResult = {
           pair: process.env.PAIR_PACKAGE_HASH,
           to: "hash-0000000000000000000000000000000000000000000000000000000000000000",
         });
-
         await UniswapSwapResult.create(newData);
       } else {
         let response = await Response.findOne({ id: "2" });

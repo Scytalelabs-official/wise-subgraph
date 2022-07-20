@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-var wise = require("../JsClients/WISETOKEN/test/installed.ts");
+var wise = require("../JsClients/WISETOKEN/wiseTokenFunctionsForBackend/functions");
 
 router.route("/wiseBalanceAgainstUser").post(async function (req, res, next) {
   try {
