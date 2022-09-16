@@ -4,14 +4,15 @@ var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 
-var indexRouter = require("./routes/index");
-
 var app = express();
 const mongoose = require("mongoose");
 require("dotenv").config();
 const { graphqlHTTP } = require("express-graphql");
 const schema = require("./graphql/schema");
-const headerMiddleware = require("./middlewares/HeaderMiddleware");
+
+//routers
+var adminRouter = require("./routes/adminroutes");
+var afterDeploymentRouter = require("./routes/afterDeploymentroutes");
 var listenerRouter = require("./routes/listenerroutes");
 const depositedLiquidityRoute = require("./routes/depositedLiquidityRoute");
 const formedLiquidityRoute = require("./routes/formedLiquidityRoute");
@@ -22,9 +23,17 @@ const stakeRoute = require("./routes/stakeRoute");
 const globalRoutes = require("./routes/globalRoutes");
 const userRoutes = require("./routes/userRoute");
 
+var eventsDataModel = require("./models/eventsData");
+
+//kafka setup
+const consumer = require('./consumer');
+
+// connecting to the database
+require("./dbConnection");
+
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
-app.set("view engine", "jade");
+app.set("view engine", "pug");
 
 app.use(logger("dev"));
 app.use(express.json());
@@ -32,36 +41,36 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
-var DB_URL;
+//Connect to Redis
+var redis = require('./connectRedis');
 
-if (process.env.NODE_MODE == "deployed") {
-  DB_URL = process.env.DATABASE_URL_ONLINE;
-} else {
-  DB_URL = process.env.DATABASE_URL_LOCAL;
+//function to deserialize Event Data
+function deserialize(serializedJavascript){
+  return eval('(' + serializedJavascript + ')');
 }
 
-console.log("DB_URL : " + DB_URL);
+app.use("/", adminRouter);
+app.use("/", afterDeploymentRouter);
 
-const connectionParams = {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  autoIndex: false,
-};
-const connect = mongoose.connect(DB_URL, connectionParams);
-// connecting to the database
-connect.then(
-  (db) => {
-    console.log("Connected to the MongoDB server\n\n");
-  },
-  (err) => {
-    console.log(err);
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "OPTIONS, GET, POST, PUT, PATCH, DELETE"
+  );
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
   }
-);
+  next();
+});
 
-app.use(headerMiddleware);
+app.get("/", (req, res) => {
+  res.json({ msg: "Wise GraphQL Backend" });
+});
 
-app.use("/", indexRouter);
-app.use("/", listenerRouter);
+app.use("/", listenerRouter.router);
 app.use("/", depositedLiquidityRoute);
 app.use("/", formedLiquidityRoute);
 app.use("/", masterRecordRoute);
@@ -78,6 +87,103 @@ app.use(
     graphiql: true,
   })
 );
+
+consumer.consumeEvent(redis);
+
+var queuePopFlag=0;
+
+async function saveEventInDataBase(deployHash,eventName,timestamp,blockHash,eventsdata)
+{
+  let eventResult= new eventsDataModel ({
+    deployHash:deployHash,
+    eventName:eventName,
+    timestamp:timestamp,
+    block_hash: blockHash,
+    status:"pending",
+    eventType:"NotSame",
+    eventsdata:eventsdata
+  });
+  await eventsDataModel.create(eventResult);
+  return eventResult;
+}
+
+async function callMutations()
+{
+  if(queuePopFlag==0)
+  {
+    let redisLength=await redis.client.LLEN(process.env.GRAPHQLREDISQUEUE);
+    
+    //check redis queue length
+    if(redisLength>0)
+    {
+        queuePopFlag=1;
+        let headValue=await redis.client.LRANGE(process.env.GRAPHQLREDISQUEUE,0,0);
+        let deserializedHeadValue=(deserialize(headValue)).obj;
+        console.log("Event Read from queue's head: ", deserializedHeadValue);
+
+        //check if event is in the database
+        let eventResult= await eventsDataModel.findOne({
+          deployHash:deserializedHeadValue.deployHash,
+          eventName:deserializedHeadValue.eventName,
+          timestamp:deserializedHeadValue.timestamp,
+          block_hash: deserializedHeadValue.block_hash
+        });
+
+        if(eventResult!=null && JSON.stringify(eventResult.eventsdata) == JSON.stringify(deserializedHeadValue.eventsdata) && eventResult.status == "completed"){
+          console.log("Event is repeated, skipping mutation call...");
+        }  
+        else{
+  
+          if(eventResult==null)
+          {
+              console.log("Event is New, Calling Mutation...");
+              //store new event Data
+              let result =await saveEventInDataBase(deserializedHeadValue.deployHash,deserializedHeadValue.eventName,deserializedHeadValue.timestamp,deserializedHeadValue.block_hash,deserializedHeadValue.eventsdata);
+              //call mutation
+              await listenerRouter.geteventsdata(result,deserializedHeadValue.deployHash, deserializedHeadValue.timestamp, deserializedHeadValue.block_hash, deserializedHeadValue.eventName, deserializedHeadValue.eventsdata);
+          }
+          else{
+            if(JSON.stringify(eventResult.eventsdata) != JSON.stringify(deserializedHeadValue.eventsdata)){
+              if(eventResult.eventType == "NotSame")
+              {
+                console.log("Event has same EventName, Calling Mutation...");
+                //store new event Data
+                let result =await saveEventInDataBase(deserializedHeadValue.deployHash,deserializedHeadValue.eventName,deserializedHeadValue.timestamp,deserializedHeadValue.block_hash,deserializedHeadValue.eventsdata);
+                result.eventType="same";
+                eventResult.eventType="same";
+                await result.save();
+                await eventResult.save();
+                //call mutation
+                await listenerRouter.geteventsdata(result,deserializedHeadValue.deployHash, deserializedHeadValue.timestamp, deserializedHeadValue.block_hash, deserializedHeadValue.eventName, deserializedHeadValue.eventsdata);
+              }
+              else{
+                console.log("Event is repeated, skipping mutation call...");
+              }
+            }
+            else if(eventResult.status == "pending"){
+              console.log("Event is Not performed Yet, Calling Mutation...");
+              //call mutation
+              await listenerRouter.geteventsdata(eventResult,deserializedHeadValue.deployHash, deserializedHeadValue.timestamp, deserializedHeadValue.block_hash, deserializedHeadValue.eventName, deserializedHeadValue.eventsdata);
+            }
+          }
+        }
+        await redis.client.LPOP(process.env.GRAPHQLREDISQUEUE);
+        queuePopFlag=0; 
+    }
+    else{
+      console.log("There are currently no Events in the Redis queue...");
+      return;
+    }
+  }
+  else{
+    console.log("Already, one Event is calling the mutation...");
+    return;
+  }
+}
+
+setInterval(() => {
+  callMutations();
+}, 2000);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

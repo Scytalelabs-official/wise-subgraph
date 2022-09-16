@@ -1,8 +1,9 @@
 require("dotenv").config();
 var express = require("express");
 var router = express.Router();
-const axios = require("axios").default;
 var { request } = require("graphql-request");
+var allcontractsDataModel = require("../models/allcontractsData");
+const mongoose = require("mongoose");
 
 function splitdata(data) {
   var temp = data.split("(");
@@ -10,80 +11,69 @@ function splitdata(data) {
   return result[0];
 }
 
-router.route("/startListener").post(async function (req, res, next) {
-  try {
-    if (!req.body.contractPackageHashes) {
-      return res.status(400).json({
-        success: false,
-        message: "There is no contractPackageHash specified in the req body.",
-      });
-    }
-
-    await axios
-      .post("http://localhost:3001/listener/initiateListener", {
-        contractPackageHashes: req.body.contractPackageHashes,
-      })
-      .then(function (response) {
-        console.log(response);
-        return res.status(200).json({
-          success: true,
-          message: response.data.message,
-          status: response.data.status,
+router
+  .route("/getContractHashAgainstPackageHash")
+  .post(async function (req, res, next) {
+    try {
+      if (!req.body.packageHash) {
+        return res.status(400).json({
+          success: false,
+          message: "There is no packageHash specified in the req body.",
         });
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
-  } catch (error) {
-    console.log("error (try-catch) : " + error);
-    return res.status(500).json({
-      success: false,
-      err: error,
-    });
-  }
-});
-router.route("/geteventsdata").post(async function (req, res, next) {
-  try {
-    if (!req.body.deployHash) {
-      return res.status(400).json({
-        success: false,
-        message: "There is no deployHash specified in the req body.",
-      });
-    }
-    if (!req.body.timestamp) {
-      return res.status(400).json({
-        success: false,
-        message: "There is no timestamp specified in the req body.",
-      });
-    }
-    if (!req.body.block_hash) {
-      return res.status(400).json({
-        success: false,
-        message: "There is no blockHash specified in the req body.",
-      });
-    }
-    if (!req.body.eventname) {
-      return res.status(400).json({
-        success: false,
-        message: "There is no eventname specified in the req body.",
-      });
-    }
-    if (!req.body.eventdata) {
-      return res.status(400).json({
-        success: false,
-        message: "There is no eventdata specified in the req body.",
-      });
-    }
+      }
 
-    let newData = req.body.eventdata;
-    let deployHash = req.body.deployHash;
-    let timestamp = (req.body.timestamp).toString();
-    let block_hash = req.body.block_hash;
-    let eventName = req.body.eventname;
-    console.log("... Deployhash: ", deployHash);
-    console.log("... Timestamp: ", timestamp);
-    console.log("... Block hash: ", block_hash);
-    console.log("Event Data: ", newData);
+      let packageHash = req.body.packageHash.toLowerCase();
+      let contractHash = await allcontractsDataModel.findOne({
+        packageHash: packageHash,
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: "Contract Hash has been Succefully found.",
+        Data: contractHash,
+      });
+    } catch (error) {
+      console.log("error (try-catch) : " + error);
+      return res.status(500).json({
+        success: false,
+        err: error,
+      });
+    }
+});
+
+async function geteventsdata(eventResult,_deployHash, _timestamp, _block_hash, _eventname, _eventdata){	
+  try {
+
+      if (!_deployHash) {
+        console.log("There is no deployHash specified in the parameters");
+        return false;
+      }
+      if (!_timestamp) {
+        console.log("There is no timestamp specified in the parameters");
+        return false;
+      }
+      if (!_block_hash) {
+        console.log("There is no blockHash specified in the parameters");
+        return false;
+      }
+      if (!_eventname) {
+        console.log("There is no eventname specified in the parameters");
+        return false;
+      }
+      if (!_eventdata) {
+        console.log("There is no eventdata specified in the parameters");
+        return false;
+      }
+
+      let newData = _eventdata;
+      let deployHash = _deployHash;
+      let timestamp = (_timestamp).toString();
+      let block_hash = _block_hash;
+      let eventName = _eventname;
+      console.log("... Deployhash: ", deployHash);
+      console.log("... Timestamp: ", timestamp);
+      console.log("... Block hash: ", block_hash);
+      console.log("Event Data: ", newData);
 
     if (eventName == "refundIssued") {
       console.log(eventName + " Event result: ");
@@ -99,7 +89,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
       console.log("amount: ", amount);
 
       console.log("Calling handleRefundIssued mutation...");
-      request(
+      await request(
         process.env.GRAPHQL,
         `mutation handleRefundIssued( $refundedTo: String!, $amount: String!, $deployHash: String!){
                 handleRefundIssued( refundedTo: $refundedTo, amount: $amount, deployHash: $deployHash) {
@@ -113,16 +103,8 @@ router.route("/geteventsdata").post(async function (req, res, next) {
           deployHash: deployHash,
         }
       )
-        .then(function (response) {
-          console.log(response);
-          return res.status(200).json({
-            success: true,
-            message: "handleRefundIssued Mutation called.",
-          });
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+      console.log("handleRefundIssued Mutation called.");  
+      return true;  
     } else if (eventName == "cashBackIssued") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
@@ -143,7 +125,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
       console.log("cashBackAmount: ", cashBackAmount);
 
       console.log("Calling handleCashBackIssued mutation...");
-      request(
+      await request(
         process.env.GRAPHQL,
         `mutation handleCashBackIssued( $totalCashBack:String!, $senderAddress: String!, $senderValue: String!,$cashBackAmount: String!, $deployHash: String!){
                 handleCashBackIssued( totalCashBack:$totalCashBack, senderAddress: $senderAddress, senderValue: $senderValue, cashBackAmount: $cashBackAmount, deployHash: $deployHash) {
@@ -159,16 +141,8 @@ router.route("/geteventsdata").post(async function (req, res, next) {
           deployHash: deployHash,
         }
       )
-        .then(function (response) {
-          console.log(response);
-          return res.status(200).json({
-            success: true,
-            message: "handleCashBackIssued Mutation called.",
-          });
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+      console.log("handleCashBackIssued Mutation called.");  
+      return true;   
     } else if (eventName == "give_status") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
@@ -180,7 +154,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
       console.log("referrerId: ", referrerId);
 
       console.log("Calling handleGiveStatus mutation...");
-      request(
+      await request(
         process.env.GRAPHQL,
         `mutation handleGiveStatus( $referrerId: String!){
             handleGiveStatus( referrerId: $referrerId) {
@@ -192,16 +166,8 @@ router.route("/geteventsdata").post(async function (req, res, next) {
           referrerId: referrerId,
         }
       )
-        .then(function (response) {
-          console.log(response);
-          return res.status(200).json({
-            success: true,
-            message: "handleGiveStatus  Mutation called.",
-          });
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+      console.log("handleGiveStatus  Mutation called.");  
+      return true;    
     } else if (eventName == "uniswapSwapResult") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
@@ -219,7 +185,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
       console.log("liquidity: ", liquidity);
 
       console.log("Calling handleUniswapSwapedResult mutation...");
-      let response = await request(
+      await request(
         process.env.GRAPHQL,
         `mutation handleUniswapSwapedResult( $amountTokenA:String!,$ amountTokenB: String!, $liquidity: String!,$deployHash: String!){
             handleUniswapSwapedResult( amountTokenA:$amountTokenA,  amountTokenB: $ amountTokenB, liquidity: $ liquidity, deployHash: $deployHash) {
@@ -234,16 +200,8 @@ router.route("/geteventsdata").post(async function (req, res, next) {
           deployHash: deployHash,
         }
       )
-        .then(function (response) {
-          console.log(response);
-          return res.status(200).json({
-            success: true,
-            message: "handleUniswapSwapedResult  Mutation called.",
-          });
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+      console.log("handleUniswapSwapedResult  Mutation called.");  
+      return true; 
     } else if (eventName == "uniswap_reserves") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
@@ -261,7 +219,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
       console.log("blockTimestampLast: ", blockTimestampLast);
 
       console.log("Calling handleUniswapReserves mutation...");
-      let response = await request(
+      await request(
         process.env.GRAPHQL,
         `mutation handleUniswapReserves( $reserveA:String!,$ reserveB: String!, $blockTimestampLast: String!){
             handleUniswapReserves( reserveA:$reserveA,  reserveB: $ reserveB, blockTimestampLast: $ blockTimestampLast) {
@@ -275,16 +233,8 @@ router.route("/geteventsdata").post(async function (req, res, next) {
           blockTimestampLast: blockTimestampLast,
         }
       )
-        .then(function (response) {
-          console.log(response);
-          return res.status(200).json({
-            success: true,
-            message: "handleUniswapReserves  Mutation called.",
-          });
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+      console.log("handleUniswapReserves  Mutation called.");  
+      return true; 
     } else if (eventName == "liquidity_guard_status") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
@@ -302,7 +252,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
         liquidityGuardStatus = false;
       }
       console.log("Calling handleLiquidityGuardStatus mutation...");
-      let response = await request(
+      await request(
         process.env.GRAPHQL,
         `mutation handleLiquidityGuardStatus( $liquidityGuardStatus:Boolean!){
             handleLiquidityGuardStatus( liquidityGuardStatus:$liquidityGuardStatus) {
@@ -314,16 +264,8 @@ router.route("/geteventsdata").post(async function (req, res, next) {
           liquidityGuardStatus: liquidityGuardStatus,
         }
       )
-        .then(function (response) {
-          console.log(response);
-          return res.status(200).json({
-            success: true,
-            message: "handleLiquidityGuardStatus  Mutation called.",
-          });
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+      console.log("handleLiquidityGuardStatus  Mutation called.");  
+      return true; 
     } else if (eventName == "referral_collected") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
@@ -346,10 +288,9 @@ router.route("/geteventsdata").post(async function (req, res, next) {
       console.log("referrerId: ", referrerId);
       console.log("rewardAmount: ", rewardAmount);
 
-      return res.status(200).json({
-        success: true,
-        message: "handleReferralCollected  Mutation don't exists.",
-      });
+      console.log("handleReferralCollected  Mutation don't exists.");  
+      return true; 
+
     } else if (eventName == "stake_start") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
@@ -385,7 +326,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
       console.log("daiEquivalent: ", daiEquivalent);
 
       console.log("Calling handleStakeStart mutation...");
-      request(
+      await request(
         process.env.GRAPHQL,
         `mutation handleStakeStart( 
           $stakerAddress: String!,
@@ -425,16 +366,8 @@ router.route("/geteventsdata").post(async function (req, res, next) {
           daiEquivalent: daiEquivalent,
         }
       )
-        .then(function (response) {
-          console.log(response);
-          return res.status(200).json({
-            success: true,
-            message: "handleStakeStart  Mutation called.",
-          });
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+      console.log("handleStakeStart  Mutation called.");  
+      return true; 
     } else if (eventName == "stake_end") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
@@ -470,7 +403,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
       console.log("penaltyAmount: ", penaltyAmount);
 
       console.log("Calling handleStakeEnd mutation...");
-      request(
+      await request(
         process.env.GRAPHQL,
         `mutation handleStakeEnd( $stakeID: String!, $closeDay: String!, $rewardAmount: String!,$penaltyAmount:String!){
           handleStakeEnd( stakeID: $stakeID, closeDay: $closeDay, rewardAmount: $rewardAmount,penaltyAmount:$penaltyAmount) {
@@ -485,16 +418,8 @@ router.route("/geteventsdata").post(async function (req, res, next) {
           penaltyAmount: penaltyAmount,
         }
       )
-        .then(function (response) {
-          console.log(response);
-          return res.status(200).json({
-            success: true,
-            message: "handleStakeEnd  Mutation called.",
-          });
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+      console.log("handleStakeEnd  Mutation called.");  
+      return true;   
     } else if (eventName == "interest_scraped") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
@@ -524,7 +449,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
       console.log("currentWiseDay: ", currentWiseDay);
 
       console.log("Calling handleInterestScraped mutation...");
-      request(
+      await request(
         process.env.GRAPHQL,
         `mutation handleInterestScraped(  
             $stakeID:String!,
@@ -552,16 +477,8 @@ router.route("/geteventsdata").post(async function (req, res, next) {
           referrerPenalty: referrerPenalty,
         }
       )
-        .then(function (response) {
-          console.log(response);
-          return res.status(200).json({
-            success: true,
-            message: "handleInterestScraped  Mutation called.",
-          });
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+      console.log("handleInterestScraped  Mutation called.");  
+      return true;      
     } else if (eventName == "new_globals") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
@@ -577,8 +494,10 @@ router.route("/geteventsdata").post(async function (req, res, next) {
       var shareRate = newData[4][1].data;
       var referrerShares = newData[5][1].data;
       var currentWiseDay = newData[6][1].data;
-      var wiseAddress = process.env.WISETOKEN_CONTRACT_HASH;
-      var UNISWAP_PAIR = process.env.UNISWAP_PAIR_HASH;
+      let wiseToken=await allcontractsDataModel.findOne({packageHash:process.env.WISETOKEN_PACKAGE_HASH});
+      let uniswapPair=await allcontractsDataModel.findOne({packageHash:process.env.PAIR_PACKAGE_HASH});
+      var wiseAddress = wiseToken.contractHash;
+      var UNISWAP_PAIR = uniswapPair.contractHash;
 
       console.log("totalShares: ", totalShares);
       console.log("totalStaked: ", totalStaked);
@@ -589,7 +508,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
       console.log("UNISWAP_PAIR: ", UNISWAP_PAIR);
 
       console.log("Calling handleNewGlobals mutation...");
-      request(
+      await request(
         process.env.GRAPHQL,
         `mutation handleNewGlobals( 
             $totalShares: String!, 
@@ -622,16 +541,8 @@ router.route("/geteventsdata").post(async function (req, res, next) {
           UNISWAP_PAIR: UNISWAP_PAIR,
         }
       )
-        .then(function (response) {
-          console.log(response);
-          return res.status(200).json({
-            success: true,
-            message: "handleNewGlobals  Mutation called.",
-          });
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+      console.log("handleNewGlobals  Mutation called.");  
+      return true;   
     } else if (eventName == "new_share_price") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
@@ -649,7 +560,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
       console.log("currentWiseDay: ", currentWiseDay);
 
       console.log("Calling handleNewSharePrice mutation...");
-      request(
+      await request(
         process.env.GRAPHQL,
         `mutation handleNewSharePrice( $newSharePrice: String!, $oldSharePrice: String!){
             handleNewSharePrice( newSharePrice: $newSharePrice, oldSharePrice: $oldSharePrice) {
@@ -662,16 +573,8 @@ router.route("/geteventsdata").post(async function (req, res, next) {
           oldSharePrice: oldSharePrice,
         }
       )
-        .then(function (response) {
-          console.log(response);
-          return res.status(200).json({
-            success: true,
-            message: "handleNewSharePrice  Mutation called.",
-          });
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+      console.log("handleNewSharePrice  Mutation called.");  
+      return true;    
     } else if (eventName == "referral_added") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
@@ -692,7 +595,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
       console.log("amount: ", amount);
 
       console.log("Calling handleReferralAdded mutation...");
-      request(
+      await request(
         process.env.GRAPHQL,
         `mutation handleReferralAdded( 
             $deployHash:String!,
@@ -726,16 +629,8 @@ router.route("/geteventsdata").post(async function (req, res, next) {
           amount: amount,
         }
       )
-        .then(function (response) {
-          console.log(response);
-          return res.status(200).json({
-            success: true,
-            message: "handleReferralAdded  Mutation called.",
-          });
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+      console.log("handleReferralAdded  Mutation called.");  
+      return true;   
     } else if (eventName == "wiseReservation") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
@@ -758,7 +653,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
       console.log("investmentMode: ", investmentMode);
 
       console.log("Calling handleWiseReservation mutation...");
-      request(
+      await request(
         process.env.GRAPHQL,
         `mutation handleWiseReservation( 
             $deployHash:String!,
@@ -795,16 +690,8 @@ router.route("/geteventsdata").post(async function (req, res, next) {
           investmentMode: investmentMode,
         }
       )
-        .then(function (response) {
-          console.log(response);
-          return res.status(200).json({
-            success: true,
-            message: "handleWiseReservation  Mutation called.",
-          });
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+      console.log("handleWiseReservation  Mutation called.");  
+      return true;   
     } else if (eventName == "depositedLiquidity") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
@@ -819,7 +706,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
       console.log("transformerAddress: ", transformerAddress);
 
       console.log("Calling handleDepositedLiquidity mutation...");
-      let response = await request(
+      await request(
         process.env.GRAPHQL,
         `mutation handleDepositedLiquidity( $user: String!, $amount: String!, $deployHash: String!){
             handleDepositedLiquidity( user: $user, amount: $amount, deployHash: $deployHash) {
@@ -833,16 +720,8 @@ router.route("/geteventsdata").post(async function (req, res, next) {
           deployHash: deployHash,
         }
       )
-        .then(function (response) {
-          console.log(response);
-          return res.status(200).json({
-            success: true,
-            message: "handleDepositedLiquidity  Mutation called.",
-          });
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+      console.log("handleDepositedLiquidity  Mutation called.");  
+      return true;   
     } else if (eventName == "withdrawal") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
@@ -857,7 +736,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
       console.log("tokenAmount: ", tokenAmount);
 
       console.log("Calling handleWithdrawal mutation...");
-      let response = await request(
+      await request(
         process.env.GRAPHQL,
         `mutation handleWithdrawal( $user: String!, $amount: String!, $deployHash: String!){
                 handleWithdrawal( user: $user, amount: $amount, deployHash: $deployHash) {
@@ -871,16 +750,8 @@ router.route("/geteventsdata").post(async function (req, res, next) {
           deployHash: deployHash,
         }
       )
-        .then(function (response) {
-          console.log(response);
-          return res.status(200).json({
-            success: true,
-            message: "handleWithdrawal  Mutation called.",
-          });
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+      console.log("handleWithdrawal  Mutation called.");  
+      return true;  
     } else if (eventName == "formedLiquidityv") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
@@ -901,7 +772,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
       console.log("liquidity: ", liquidity);
 
       console.log("Calling handleFormedLiquidity mutation...");
-      let response = await request(
+      await request(
         process.env.GRAPHQL,
         `mutation handleFormedLiquidity( $ coverAmount:String! ,$amountTokenA:String!,$ amountTokenB: String!, $liquidity: String!,$deployHash: String!){
             handleFormedLiquidity( coverAmount:$coverAmount, amountTokenA:$amountTokenA,  amountTokenB: $ amountTokenB, liquidity: $ liquidity, deployHash: $deployHash) {
@@ -917,16 +788,8 @@ router.route("/geteventsdata").post(async function (req, res, next) {
           deployHash: deployHash,
         }
       )
-        .then(function (response) {
-          console.log(response);
-          return res.status(200).json({
-            success: true,
-            message: "handleFormedLiquidity  Mutation called.",
-          });
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+      console.log("handleFormedLiquidity  Mutation called.");  
+      return true; 
     } else if (eventName == "LiquidityRemoved") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
@@ -941,7 +804,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
       console.log("amountScspr: ", amountScspr);
 
       console.log("Calling handleLiquidityRemoved mutation...");
-      let response = await request(
+      await request(
         process.env.GRAPHQL,
         `mutation handleLiquidityRemoved( $amountWcspr: String!, $amountScspr: String!){
                 handleLiquidityRemoved( amountWcspr: $amountWcspr, amountScspr: $amountScspr) {
@@ -954,16 +817,8 @@ router.route("/geteventsdata").post(async function (req, res, next) {
           amountScspr: amountScspr,
         }
       )
-        .then(function (response) {
-          console.log(response);
-          return res.status(200).json({
-            success: true,
-            message: "handleLiquidityRemoved  Mutation called.",
-          });
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+      console.log("handleLiquidityRemoved  Mutation called.");  
+      return true; 
     } else if (eventName == "SendFeesToMaster") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
@@ -978,7 +833,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
       console.log("masterAddress: ", masterAddress);
 
       console.log("Calling handleMasterRecord mutation...");
-      let response = await request(
+      await request(
         process.env.GRAPHQL,
         `mutation handleMasterRecord( $masterAddress: String!, $amount: String!, $source: String!){
             handleMasterRecord( masterAddress: $masterAddress, amount: $amount, source: $source) {
@@ -992,16 +847,8 @@ router.route("/geteventsdata").post(async function (req, res, next) {
           source: eventName,
         }
       )
-        .then(function (response) {
-          console.log(response);
-          return res.status(200).json({
-            success: true,
-            message: "handleMasterRecord  Mutation called.",
-          });
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+      console.log("handleMasterRecord  Mutation called.");  
+      return true; 
     } else if (eventName == "LiquidityAdded") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
@@ -1019,7 +866,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
       console.log("liquidity: ", liquidity);
 
       console.log("Calling handleLiquidityAdded mutation...");
-      let response = await request(
+      await request(
         process.env.GRAPHQL,
         `mutation handleLiquidityAdded( $amountWcspr: String!, $amountScspr: String!, $liquidity: String!){
                 handleLiquidityAdded( amountWcspr: $amountWcspr, amountScspr: $amountScspr, liquidity: $liquidity) {
@@ -1033,16 +880,8 @@ router.route("/geteventsdata").post(async function (req, res, next) {
           liquidity: liquidity,
         }
       )
-        .then(function (response) {
-          console.log(response);
-          return res.status(200).json({
-            success: true,
-            message: "handleLiquidityAdded  Mutation called.",
-          });
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+      console.log("handleLiquidityAdded  Mutation called.");  
+      return true; 
     } else if (eventName == "MasterProfit") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
@@ -1057,7 +896,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
       console.log("masterAddress: ", masterAddress);
 
       console.log("Calling handleMasterRecord mutation...");
-      let response = await request(
+      await request(
         process.env.GRAPHQL,
         `mutation handleMasterRecord( $masterAddress: String!, $amount: String!, $source: String!){
             handleMasterRecord( masterAddress: $masterAddress, amount: $amount, source: $source) {
@@ -1071,16 +910,8 @@ router.route("/geteventsdata").post(async function (req, res, next) {
           source: eventName,
         }
       )
-        .then(function (response) {
-          console.log(response);
-          return res.status(200).json({
-            success: true,
-            message: "handleMasterRecord  Mutation called.",
-          });
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+      console.log("handleMasterRecord  Mutation called.");  
+      return true; 
     } else if (eventName == "SendArbitrageProfitToMaster") {
       console.log(eventName + " Event result: ");
       console.log(newData[0][0].data + " = " + newData[0][1].data);
@@ -1095,7 +926,7 @@ router.route("/geteventsdata").post(async function (req, res, next) {
       console.log("masterAddress: ", masterAddress);
 
       console.log("Calling handleMasterRecord mutation...");
-      let response = await request(
+      await request(
         process.env.GRAPHQL,
         `mutation handleMasterRecord( $masterAddress: String!, $amount: String!, $source: String!){
             handleMasterRecord( masterAddress: $masterAddress, amount: $amount, source: $source) {
@@ -1109,23 +940,14 @@ router.route("/geteventsdata").post(async function (req, res, next) {
           source: eventName,
         }
       )
-        .then(function (response) {
-          console.log(response);
-          return res.status(200).json({
-            success: true,
-            message: "handleMasterRecord  Mutation called.",
-          });
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+      console.log("handleMasterRecord  Mutation called.");  
+      return true; 
     }
   } catch (error) {
     console.log("error (try-catch) : " + error);
-    return res.status(500).json({
-      success: false,
-      err: error,
-    });
+    return false;
+    
   }
-});
-module.exports = router;
+}
+
+module.exports = {router,geteventsdata};
